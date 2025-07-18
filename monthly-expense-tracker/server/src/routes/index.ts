@@ -3,6 +3,8 @@ import healthRoutes from './health';
 import categoryRoutes from './categories';
 import expenseRoutes from './expenses';
 import budgetRoutes from './budgets';
+import analyticsRoutes from './analytics';
+import exportRoutes from './export';
 
 const router = Router();
 
@@ -25,5 +27,11 @@ router.get('/budgets/range', budgetRoutes);
 
 // Regular budget routes
 router.use('/budgets', budgetRoutes);
+
+// Analytics routes
+router.use('/analytics', analyticsRoutes);
+
+// Export routes
+router.use('/export', exportRoutes);
 
 export default router;

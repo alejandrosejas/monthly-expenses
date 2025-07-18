@@ -2,10 +2,16 @@ import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import MonthSummary from './MonthSummary';
 import { useGet } from '../../hooks/useApi';
+import { ExportButton } from '../common';
 
 // Mock the useGet hook
 jest.mock('../../hooks/useApi', () => ({
   useGet: jest.fn(),
+}));
+
+// Mock the ExportButton component
+jest.mock('../common', () => ({
+  ExportButton: jest.fn(() => <button data-testid="export-button">Export</button>),
 }));
 
 describe('MonthSummary', () => {
@@ -76,6 +82,15 @@ describe('MonthSummary', () => {
     expect(mockExecute).toHaveBeenCalled();
     expect(screen.getByText('No expenses')).toBeInTheDocument();
     expect(screen.getByText("You haven't added any expenses for this month yet.")).toBeInTheDocument();
+    
+    // Check that export button is disabled
+    expect(ExportButton).toHaveBeenCalledWith(
+      expect.objectContaining({
+        month: mockMonth,
+        disabled: true
+      }),
+      expect.anything()
+    );
   });
 
   it('renders summary data correctly', async () => {
@@ -91,6 +106,19 @@ describe('MonthSummary', () => {
     expect(mockExecute).toHaveBeenCalled();
     
     await waitFor(() => {
+      // Check for export button
+      expect(screen.getByTestId('export-button')).toBeInTheDocument();
+      expect(ExportButton).toHaveBeenCalledWith(
+        expect.objectContaining({
+          month: mockMonth,
+          disabled: false
+        }),
+        expect.anything()
+      );
+      
+      // Check for monthly summary title
+      expect(screen.getByText('Monthly Summary')).toBeInTheDocument();
+      
       // Check for total expenses
       expect(screen.getByText('Total Expenses')).toBeInTheDocument();
       expect(screen.getByText('$1,250.75')).toBeInTheDocument();

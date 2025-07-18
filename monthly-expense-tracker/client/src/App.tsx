@@ -325,12 +325,41 @@ const Budgets = () => {
   );
 };
 
-const Analytics = () => (
-  <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-    <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Analytics</h2>
-    <p className="text-gray-600 dark:text-gray-300">Expense analytics and charts will be displayed here.</p>
-  </div>
-);
+import ExpenseChart from './components/analytics/ExpenseChart';
+import TrendChart from './components/analytics/TrendChart';
+
+const Analytics = () => {
+  const [currentMonth, setCurrentMonth] = useState(getCurrentMonth());
+  
+  return (
+    <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 space-y-4 sm:space-y-0">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Analytics</h2>
+        </div>
+        <MonthNavigator 
+          currentMonth={currentMonth} 
+          onMonthChange={setCurrentMonth} 
+        />
+      </div>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <ExpenseChart month={currentMonth} />
+        <TrendChart month={currentMonth} />
+      </div>
+      
+      <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg mb-6">
+        <h3 className="text-lg font-medium mb-2 text-gray-900 dark:text-white">
+          Insights
+        </h3>
+        <p className="text-gray-600 dark:text-gray-300">
+          View your spending patterns and trends to make informed financial decisions.
+          The charts above show your expense breakdown by category and spending trends over time.
+        </p>
+      </div>
+    </div>
+  );
+};
 
 const NotFound = () => (
   <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 text-center">

@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useGet } from '../../hooks/useApi';
 import { Category, CategoryBreakdown } from 'shared';
+import { ExportButton } from '../common';
 
 interface MonthSummaryProps {
   month: string;
@@ -96,6 +97,14 @@ const MonthSummary: React.FC<MonthSummaryProps> = ({ month, categories }) => {
         </div>
       ) : (
         <>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Monthly Summary</h2>
+            <ExportButton 
+              month={month} 
+              disabled={!summaryResponse?.data?.totalExpenses || summaryResponse.data.totalExpenses === 0}
+            />
+          </div>
+          
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Total expenses card */}
             <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-4">

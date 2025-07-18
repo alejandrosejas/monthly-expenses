@@ -76,21 +76,21 @@
   - Write tests for budget calculations and alert logic
   - _Requirements: 4.1, 4.2, 4.3, 4.4_
 
-- [ ] 12. Add analytics and visualization features
+- [x] 12. Add analytics and visualization features
   - Integrate Chart.js and create ExpenseChart component for category breakdown
   - Implement TrendChart component for spending over time
   - Create analytics API endpoints for chart data
   - Write tests for chart data calculations and rendering
   - _Requirements: 8.1, 8.2, 8.3, 8.4_
 
-- [ ] 13. Implement data export functionality
+- [x] 13. Implement data export functionality
   - Create CSV export API endpoint with proper formatting
   - Implement PDF report generation with charts and summaries
   - Add export UI components with format selection
   - Write tests for export data accuracy and file generation
   - _Requirements: 7.1, 7.2, 7.3, 7.4_
 
-- [ ] 14. Add responsive design and mobile optimization
+- [-] 14. Add responsive design and mobile optimization
   - Implement responsive layouts for all components
   - Create MobileMenu component for mobile navigation
   - Optimize touch interactions and mobile-specific UI elements

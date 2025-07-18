@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react';
 import Button from './components/common/Button';
 import MobileMenu from './components/common/MobileMenu';
 import MonthNavigator from './components/common/MonthNavigator';
+import ErrorBoundary from './components/common/ErrorBoundary';
+import ToastProvider, { useToast } from './components/common/Toast';
 import { getCurrentMonth } from './utils/date-utils';
 
 // Layout components
@@ -348,40 +350,56 @@ const NotFound = () => (
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={
-          <Layout>
-            <Dashboard />
-          </Layout>
-        } />
-        <Route path="/expenses" element={
-          <Layout>
-            <Expenses />
-          </Layout>
-        } />
-        <Route path="/categories" element={
-          <Layout>
-            <Categories />
-          </Layout>
-        } />
-        <Route path="/budgets" element={
-          <Layout>
-            <Budgets />
-          </Layout>
-        } />
-        <Route path="/analytics" element={
-          <Layout>
-            <Analytics />
-          </Layout>
-        } />
-        <Route path="*" element={
-          <Layout>
-            <NotFound />
-          </Layout>
-        } />
-      </Routes>
-    </Router>
+    <ToastProvider>
+      <Router>
+        <ErrorBoundary>
+          <Routes>
+            <Route path="/" element={
+              <Layout>
+                <ErrorBoundary>
+                  <Dashboard />
+                </ErrorBoundary>
+              </Layout>
+            } />
+            <Route path="/expenses" element={
+              <Layout>
+                <ErrorBoundary>
+                  <Expenses />
+                </ErrorBoundary>
+              </Layout>
+            } />
+            <Route path="/categories" element={
+              <Layout>
+                <ErrorBoundary>
+                  <Categories />
+                </ErrorBoundary>
+              </Layout>
+            } />
+            <Route path="/budgets" element={
+              <Layout>
+                <ErrorBoundary>
+                  <Budgets />
+                </ErrorBoundary>
+              </Layout>
+            } />
+            <Route path="/analytics" element={
+              <Layout>
+                <ErrorBoundary>
+                  <Analytics />
+                </ErrorBoundary>
+              </Layout>
+            } />
+            <Route path="*" element={
+              <Layout>
+                <ErrorBoundary>
+                  <NotFound />
+                </ErrorBoundary>
+              </Layout>
+            } />
+          </Routes>
+        </ErrorBoundary>
+      </Router>
+    </ToastProvider>
   );
 }
 

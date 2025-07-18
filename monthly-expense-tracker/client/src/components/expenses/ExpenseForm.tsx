@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { ExpenseInput, PaymentMethod, Category } from 'shared';
 import Button from '../common/Button';
+import { useToast } from '../common/Toast';
 import { toISODateString } from '../../utils/date-utils';
 import { usePost, usePut } from '../../hooks/useApi';
 
@@ -32,6 +33,9 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
   
   // Form submission state
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Toast notifications
+  const { addToast } = useToast();
 
   // API hooks for creating or updating expenses
   const createExpense = usePost<{ data: ExpenseInput & { id: string } }, ExpenseInput>(
@@ -131,6 +135,11 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
       }
       
       if (result && onSuccess) {
+        // Show success toast notification
+        addToast(
+          expense?.id ? 'Expense updated successfully' : 'Expense added successfully',
+          'success'
+        );
         onSuccess(result.data);
       }
     } catch (error) {
@@ -138,6 +147,11 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
       // Handle API errors
       if (error instanceof Error) {
         setErrors(prev => ({ ...prev, form: error.message }));
+        // Show error toast notification
+        addToast(
+          `Failed to ${expense?.id ? 'update' : 'add'} expense: ${error.message}`,
+          'error'
+        );
       }
     } finally {
       setIsSubmitting(false);

@@ -1,5 +1,6 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import api, { ApiError } from '../services/api';
+import { useToast } from '../components/common/Toast';
 
 interface UseApiState<T> {
   data: T | null;
@@ -19,6 +20,7 @@ export function useApi<T, P extends any[]>(
   apiMethod: (...args: P) => Promise<T>,
   ...params: P
 ): UseApiResponse<T> {
+  const { addToast } = useToast();
   const [state, setState] = useState<UseApiState<T>>({
     data: null,
     loading: false,
@@ -40,9 +42,13 @@ export function useApi<T, P extends any[]>(
           : new ApiError('Unknown error', 0);
           
       setState({ data: null, loading: false, error: apiError });
+      
+      // Show toast notification for API errors
+      addToast(apiError.message || 'An error occurred', 'error');
+      
       return null;
     }
-  }, [apiMethod, ...params]);
+  }, [apiMethod, addToast, ...params]);
 
   const reset = useCallback(() => {
     setState({ data: null, loading: false, error: null });

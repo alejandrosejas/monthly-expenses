@@ -4,6 +4,7 @@ import { useGet } from '../../hooks/useApi';
 import { formatDate, getMonthStart, getMonthEnd } from '../../utils/date-utils';
 import ExpenseItem from './ExpenseItem';
 import Button from '../common/Button';
+import { SkeletonTable } from '../common/Skeleton';
 import AdvancedFilters from './AdvancedFilters';
 
 interface ExpenseListProps {
@@ -408,8 +409,8 @@ const ExpenseList: React.FC<ExpenseListProps> = ({
           <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
             {loadingExpenses ? (
               <tr>
-                <td colSpan={6} className="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
-                  Loading expenses...
+                <td colSpan={6} className="px-6 py-4">
+                  <SkeletonTable rows={5} columns={5} />
                 </td>
               </tr>
             ) : expensesError ? (
@@ -446,8 +447,31 @@ const ExpenseList: React.FC<ExpenseListProps> = ({
       {/* Mobile view for expenses */}
       <div className="md:hidden">
         {loadingExpenses ? (
-          <div className="text-center py-4 text-gray-500 dark:text-gray-400">
-            Loading expenses...
+          <div className="space-y-4 py-4">
+            {[...Array(3)].map((_, index) => (
+              <div key={index} className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 border border-gray-200 dark:border-gray-700">
+                <div className="flex justify-between items-start mb-2">
+                  <div className="w-1/3">
+                    <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded w-3/4 animate-pulse"></div>
+                  </div>
+                  <div className="w-1/4">
+                    <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded w-full animate-pulse"></div>
+                  </div>
+                </div>
+                <div className="flex items-center mb-2">
+                  <div className="w-3 h-3 rounded-full bg-gray-200 dark:bg-gray-700 mr-2 animate-pulse"></div>
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3 animate-pulse"></div>
+                </div>
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full mb-2 animate-pulse"></div>
+                <div className="flex justify-between items-center">
+                  <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/4 animate-pulse"></div>
+                  <div className="flex space-x-2">
+                    <div className="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                    <div className="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         ) : expensesError ? (
           <div className="text-center py-4 text-red-500">

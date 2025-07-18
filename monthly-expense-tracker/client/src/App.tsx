@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import Button from './components/common/Button';
 
 // Layout components
 const Layout = ({ children }: { children: React.ReactNode }) => {
@@ -103,12 +104,62 @@ const Dashboard = () => (
   </div>
 );
 
-const Expenses = () => (
-  <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-    <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Expenses</h2>
-    <p className="text-gray-600 dark:text-gray-300">Expense management interface will be implemented here.</p>
-  </div>
-);
+import ExpenseForm from './components/expenses/ExpenseForm';
+import { useGet } from './hooks/useApi';
+import { Category } from 'shared';
+
+const Expenses = () => {
+  const { data: categoriesResponse, loading: loadingCategories, error: categoriesError, execute: fetchCategories } = 
+    useGet<{ data: Category[] }>('/api/categories');
+  
+  const [showForm, setShowForm] = useState(false);
+  
+  // Fetch categories when component mounts
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+  
+  const handleExpenseAdded = () => {
+    setShowForm(false);
+    // In a real implementation, we would refresh the expenses list here
+  };
+  
+  return (
+    <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Expenses</h2>
+        <Button 
+          variant="primary" 
+          onClick={() => setShowForm(!showForm)}
+        >
+          {showForm ? 'Cancel' : 'Add Expense'}
+        </Button>
+      </div>
+      
+      {showForm && (
+        <div className="mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
+          {loadingCategories ? (
+            <p className="text-gray-600 dark:text-gray-300">Loading categories...</p>
+          ) : categoriesError ? (
+            <p className="text-red-600">Error loading categories. Please try again.</p>
+          ) : (
+            <ExpenseForm 
+              categories={categoriesResponse?.data || []}
+              onSuccess={handleExpenseAdded}
+              onCancel={() => setShowForm(false)}
+            />
+          )}
+        </div>
+      )}
+      
+      {!showForm && (
+        <p className="text-gray-600 dark:text-gray-300">
+          Expense list will be implemented in a future task.
+        </p>
+      )}
+    </div>
+  );
+};
 
 const Categories = () => (
   <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">

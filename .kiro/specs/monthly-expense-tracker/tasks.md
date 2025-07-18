@@ -48,14 +48,14 @@
   - Set up API service layer with fetch utilities
   - _Requirements: Foundation for frontend requirements_
 
-- [ ] 8. Create core expense form component
+- [x] 8. Create core expense form component
   - Implement ExpenseForm component with all required fields
   - Add form validation with real-time feedback
   - Integrate with category selection and date picker
   - Write component tests for form validation and submission
   - _Requirements: 1.1, 1.2, 1.3, 2.1_
 
-- [ ] 9. Implement expense list and display components
+- [-] 9. Implement expense list and display components
   - Create ExpenseList component with sorting and filtering
   - Implement ExpenseItem component with edit/delete actions
   - Add search functionality across expense fields

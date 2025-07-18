@@ -107,7 +107,7 @@ const TrendChart: React.FC<TrendChartProps> = ({ month, months = 6 }) => {
       <h3 className="text-lg font-medium mb-4 text-gray-900 dark:text-white">
         Expense Trends
       </h3>
-      <div className="h-64">
+      <div className="h-64 md:h-72">
         <Line
           data={chartData}
           options={{
@@ -118,7 +118,10 @@ const TrendChart: React.FC<TrendChartProps> = ({ month, months = 6 }) => {
                 beginAtZero: true,
                 ticks: {
                   color: document.documentElement.classList.contains('dark') ? 'white' : 'black',
-                  callback: (value) => `$${value}`
+                  callback: (value) => `${value}`,
+                  font: {
+                    size: window.innerWidth < 768 ? 10 : 12
+                  }
                 },
                 grid: {
                   color: document.documentElement.classList.contains('dark') 
@@ -128,7 +131,11 @@ const TrendChart: React.FC<TrendChartProps> = ({ month, months = 6 }) => {
               },
               x: {
                 ticks: {
-                  color: document.documentElement.classList.contains('dark') ? 'white' : 'black'
+                  color: document.documentElement.classList.contains('dark') ? 'white' : 'black',
+                  font: {
+                    size: window.innerWidth < 768 ? 10 : 12
+                  },
+                  maxRotation: window.innerWidth < 768 ? 45 : 0
                 },
                 grid: {
                   color: document.documentElement.classList.contains('dark') 
@@ -145,7 +152,7 @@ const TrendChart: React.FC<TrendChartProps> = ({ month, months = 6 }) => {
                 callbacks: {
                   label: (context) => {
                     const value = context.raw as number;
-                    return `Total: $${value.toFixed(2)}`;
+                    return `Total: ${value.toFixed(2)}`;
                   }
                 }
               }
@@ -153,16 +160,16 @@ const TrendChart: React.FC<TrendChartProps> = ({ month, months = 6 }) => {
           }}
         />
       </div>
-      <div className="mt-4">
+      <div className="mt-6 overflow-x-auto">
         <table className="min-w-full text-sm">
           <thead>
             <tr>
-              <th className="text-left text-gray-600 dark:text-gray-300">Month</th>
-              <th className="text-right text-gray-600 dark:text-gray-300">Total Expenses</th>
-              <th className="text-right text-gray-600 dark:text-gray-300">Change</th>
+              <th className="text-left text-gray-600 dark:text-gray-300 px-2">Month</th>
+              <th className="text-right text-gray-600 dark:text-gray-300 px-2">Total Expenses</th>
+              <th className="text-right text-gray-600 dark:text-gray-300 px-2">Change</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
             {totalsResponse?.data.map((item, index, array) => {
               const prevTotal = index > 0 ? array[index - 1].total : null;
               const change = prevTotal !== null ? item.total - prevTotal : null;
@@ -172,13 +179,13 @@ const TrendChart: React.FC<TrendChartProps> = ({ month, months = 6 }) => {
               
               return (
                 <tr key={item.month}>
-                  <td className="py-1 text-gray-800 dark:text-gray-200">
+                  <td className="py-2 px-2 text-gray-800 dark:text-gray-200">
                     {formatMonthYear(item.month)}
                   </td>
-                  <td className="text-right text-gray-800 dark:text-gray-200">
+                  <td className="text-right text-gray-800 dark:text-gray-200 py-2 px-2">
                     ${item.total.toFixed(2)}
                   </td>
-                  <td className="text-right">
+                  <td className="text-right py-2 px-2">
                     {change !== null ? (
                       <span className={`
                         ${change > 0 ? 'text-red-600 dark:text-red-400' : 
@@ -186,9 +193,11 @@ const TrendChart: React.FC<TrendChartProps> = ({ month, months = 6 }) => {
                           'text-gray-600 dark:text-gray-400'}
                       `}>
                         {change > 0 ? '+' : ''}{change.toFixed(2)} 
-                        ({changePercent !== null ? (
-                          <>{changePercent > 0 ? '+' : ''}{changePercent.toFixed(1)}%</>
-                        ) : '-%'})
+                        <span className="hidden sm:inline">
+                          ({changePercent !== null ? (
+                            <>{changePercent > 0 ? '+' : ''}{changePercent.toFixed(1)}%</>
+                          ) : '-%'})
+                        </span>
                       </span>
                     ) : (
                       <span className="text-gray-500 dark:text-gray-400">-</span>

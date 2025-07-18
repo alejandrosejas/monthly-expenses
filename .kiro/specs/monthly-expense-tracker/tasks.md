@@ -90,14 +90,14 @@
   - Write tests for export data accuracy and file generation
   - _Requirements: 7.1, 7.2, 7.3, 7.4_
 
-- [-] 14. Add responsive design and mobile optimization
+- [x] 14. Add responsive design and mobile optimization
   - Implement responsive layouts for all components
   - Create MobileMenu component for mobile navigation
   - Optimize touch interactions and mobile-specific UI elements
   - Test responsive behavior across different screen sizes
   - _Requirements: 9.1, 9.2, 9.3, 9.4_
 
-- [ ] 15. Implement advanced search and filtering
+- [x] 15. Implement advanced search and filtering
   - Add advanced filter UI with date ranges and amount filters
   - Implement search highlighting and result management
   - Create filter persistence and URL state management

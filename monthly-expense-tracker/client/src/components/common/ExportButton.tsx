@@ -40,14 +40,15 @@ const ExportButton: React.FC<ExportButtonProps> = ({ month, disabled = false, cl
       <Menu as="div" className="relative inline-block text-left">
         <Menu.Button
           disabled={disabled || isExporting}
-          className={`inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md
+          className={`inline-flex items-center justify-center px-4 py-2.5 sm:py-2 text-sm font-medium rounded-md touch-manipulation
             ${disabled || isExporting
               ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
               : 'bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
             }`}
         >
           <DocumentArrowDownIcon className="w-5 h-5 mr-2" />
-          {isExporting ? 'Exporting...' : 'Export'}
+          <span className="hidden sm:inline">{isExporting ? 'Exporting...' : 'Export'}</span>
+          <span className="sm:hidden">Export</span>
           <ChevronDownIcon className="w-5 h-5 ml-2 -mr-1" aria-hidden="true" />
         </Menu.Button>
         
@@ -60,7 +61,7 @@ const ExportButton: React.FC<ExportButtonProps> = ({ month, disabled = false, cl
           leaveFrom="transform opacity-100 scale-100"
           leaveTo="transform opacity-0 scale-95"
         >
-          <Menu.Items className="absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+          <Menu.Items className="absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-white dark:bg-gray-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
             <div className="py-1">
               <Menu.Item>
                 {({ active }) => (
@@ -68,8 +69,8 @@ const ExportButton: React.FC<ExportButtonProps> = ({ month, disabled = false, cl
                     onClick={() => handleExport('csv')}
                     disabled={isExporting}
                     className={`${
-                      active ? 'bg-gray-100 text-gray-900' : 'text-gray-700'
-                    } flex w-full items-center px-4 py-2 text-sm`}
+                      active ? 'bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white' : 'text-gray-700 dark:text-gray-200'
+                    } flex w-full items-center px-4 py-3 sm:py-2 text-base sm:text-sm touch-manipulation`}
                   >
                     <span className="mr-2">📊</span> Export as CSV
                   </button>
@@ -81,8 +82,8 @@ const ExportButton: React.FC<ExportButtonProps> = ({ month, disabled = false, cl
                     onClick={() => handleExport('pdf')}
                     disabled={isExporting}
                     className={`${
-                      active ? 'bg-gray-100 text-gray-900' : 'text-gray-700'
-                    } flex w-full items-center px-4 py-2 text-sm`}
+                      active ? 'bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white' : 'text-gray-700 dark:text-gray-200'
+                    } flex w-full items-center px-4 py-3 sm:py-2 text-base sm:text-sm touch-manipulation`}
                   >
                     <span className="mr-2">📄</span> Export as PDF
                   </button>

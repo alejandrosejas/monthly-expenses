@@ -22,13 +22,13 @@ const Button: React.FC<ButtonProps> = ({
   ...props
 }) => {
   // Base classes
-  const baseClasses = 'inline-flex items-center justify-center font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2';
+  const baseClasses = 'inline-flex items-center justify-center font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 touch-manipulation';
   
   // Size classes
   const sizeClasses = {
-    sm: 'px-3 py-1.5 text-xs',
-    md: 'px-4 py-2 text-sm',
-    lg: 'px-6 py-3 text-base',
+    sm: 'px-3 py-2 text-xs sm:py-1.5',
+    md: 'px-4 py-2.5 text-sm sm:py-2',
+    lg: 'px-6 py-3.5 text-base sm:py-3',
   };
   
   // Variant classes

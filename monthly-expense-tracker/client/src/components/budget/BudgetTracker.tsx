@@ -261,16 +261,18 @@ const BudgetTracker: React.FC<BudgetTrackerProps> = ({ month, categories }) => {
             
             <div>
               <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Category Budgets</h3>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {categories.map(category => (
-                  <div key={category.id} className="flex items-center">
-                    <div 
-                      className="w-3 h-3 rounded-full mr-2" 
-                      style={{ backgroundColor: category.color }}
-                    ></div>
-                    <label htmlFor={`category-${category.id}`} className="block text-sm font-medium text-gray-700 dark:text-gray-300 w-1/3">
-                      {category.name}
-                    </label>
+                  <div key={category.id} className="flex flex-col sm:flex-row sm:items-center gap-2">
+                    <div className="flex items-center sm:w-1/3">
+                      <div 
+                        className="w-3 h-3 rounded-full mr-2" 
+                        style={{ backgroundColor: category.color }}
+                      ></div>
+                      <label htmlFor={`category-${category.id}`} className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        {category.name}
+                      </label>
+                    </div>
                     <div className="relative rounded-md shadow-sm flex-1">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <span className="text-gray-500 sm:text-sm">$</span>
@@ -283,8 +285,9 @@ const BudgetTracker: React.FC<BudgetTrackerProps> = ({ month, categories }) => {
                         step="0.01"
                         value={categoryBudgets[category.id] || 0}
                         onChange={(e) => handleCategoryBudgetChange(category.id, parseFloat(e.target.value) || 0)}
-                        className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-7 sm:text-sm border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                        className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-7 sm:text-sm border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white h-10 sm:h-auto text-base sm:text-sm touch-manipulation"
                         placeholder="0.00"
+                        inputMode="decimal"
                       />
                     </div>
                   </div>
@@ -292,18 +295,18 @@ const BudgetTracker: React.FC<BudgetTrackerProps> = ({ month, categories }) => {
               </div>
             </div>
             
-            <div className="flex justify-end space-x-3">
+            <div className="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-3">
               <button
                 type="button"
                 onClick={() => setIsEditing(false)}
-                className="px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:border-gray-600 dark:hover:bg-gray-600"
+                className="w-full sm:w-auto px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:border-gray-600 dark:hover:bg-gray-600 touch-manipulation"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={savingBudget}
-                className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 touch-manipulation"
               >
                 {savingBudget ? 'Saving...' : 'Save Budget'}
               </button>
@@ -335,16 +338,16 @@ const BudgetTracker: React.FC<BudgetTrackerProps> = ({ month, categories }) => {
       
       {/* Overall budget status */}
       <div className="mb-6">
-        <div className="flex justify-between items-end mb-1">
-          <div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-3 sm:mb-1">
+          <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
             <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Budget</span>
             <p className="text-xl font-semibold text-gray-900 dark:text-white">{formatCurrency(budgetStatus?.totalBudget || 0)}</p>
           </div>
-          <div className="text-right">
+          <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
             <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Spent</span>
             <p className="text-xl font-semibold text-gray-900 dark:text-white">{formatCurrency(budgetStatus?.totalSpent || 0)}</p>
           </div>
-          <div className="text-right">
+          <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
             <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Remaining</span>
             <p className={`text-xl font-semibold ${budgetStatus?.totalRemaining === 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-white'}`}>
               {formatCurrency(budgetStatus?.totalRemaining || 0)}
@@ -352,9 +355,9 @@ const BudgetTracker: React.FC<BudgetTrackerProps> = ({ month, categories }) => {
           </div>
         </div>
         
-        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4 sm:h-3">
           <div 
-            className={`h-3 rounded-full ${
+            className={`h-4 sm:h-3 rounded-full ${
               budgetStatus?.percentageUsed >= 100 
                 ? 'bg-red-500' 
                 : budgetStatus?.percentageUsed >= 80 
@@ -365,7 +368,7 @@ const BudgetTracker: React.FC<BudgetTrackerProps> = ({ month, categories }) => {
           ></div>
         </div>
         
-        <div className="mt-1 text-right">
+        <div className="mt-2 sm:mt-1 text-right">
           <span className={`text-sm font-medium ${
             budgetStatus?.percentageUsed >= 100 
               ? 'text-red-600 dark:text-red-400' 

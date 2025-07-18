@@ -90,7 +90,7 @@ const ExpenseChart: React.FC<ExpenseChartProps> = ({ month }) => {
       <h3 className="text-lg font-medium mb-4 text-gray-900 dark:text-white">
         Expense Breakdown by Category
       </h3>
-      <div className="h-64">
+      <div className="h-64 md:h-72">
         <Pie
           data={chartData}
           options={{
@@ -98,13 +98,14 @@ const ExpenseChart: React.FC<ExpenseChartProps> = ({ month }) => {
             maintainAspectRatio: false,
             plugins: {
               legend: {
-                position: 'right',
+                position: window.innerWidth < 768 ? 'bottom' : 'right',
                 labels: {
                   color: document.documentElement.classList.contains('dark') ? 'white' : 'black',
                   font: {
                     size: 12
                   },
-                  boxWidth: 15
+                  boxWidth: 15,
+                  padding: window.innerWidth < 768 ? 10 : 15
                 }
               },
               tooltip: {
@@ -115,7 +116,7 @@ const ExpenseChart: React.FC<ExpenseChartProps> = ({ month }) => {
                     const percentage = breakdownResponse?.data.find(
                       item => item.category === label
                     )?.percentage.toFixed(1);
-                    return `${label}: $${value.toFixed(2)} (${percentage}%)`;
+                    return `${label}: ${value.toFixed(2)} (${percentage}%)`;
                   }
                 }
               }
@@ -123,19 +124,19 @@ const ExpenseChart: React.FC<ExpenseChartProps> = ({ month }) => {
           }}
         />
       </div>
-      <div className="mt-4">
+      <div className="mt-6 overflow-x-auto">
         <table className="min-w-full text-sm">
           <thead>
             <tr>
-              <th className="text-left text-gray-600 dark:text-gray-300">Category</th>
-              <th className="text-right text-gray-600 dark:text-gray-300">Amount</th>
-              <th className="text-right text-gray-600 dark:text-gray-300">Percentage</th>
+              <th className="text-left text-gray-600 dark:text-gray-300 px-2">Category</th>
+              <th className="text-right text-gray-600 dark:text-gray-300 px-2">Amount</th>
+              <th className="text-right text-gray-600 dark:text-gray-300 px-2">Percentage</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
             {breakdownResponse?.data.map((item) => (
               <tr key={item.category}>
-                <td className="py-1">
+                <td className="py-2 px-2">
                   <div className="flex items-center">
                     <span 
                       className="inline-block w-3 h-3 mr-2 rounded-full" 
@@ -144,10 +145,10 @@ const ExpenseChart: React.FC<ExpenseChartProps> = ({ month }) => {
                     <span className="text-gray-800 dark:text-gray-200">{item.category}</span>
                   </div>
                 </td>
-                <td className="text-right text-gray-800 dark:text-gray-200">
+                <td className="text-right text-gray-800 dark:text-gray-200 py-2 px-2">
                   ${item.amount.toFixed(2)}
                 </td>
-                <td className="text-right text-gray-800 dark:text-gray-200">
+                <td className="text-right text-gray-800 dark:text-gray-200 py-2 px-2">
                   {item.percentage.toFixed(1)}%
                 </td>
               </tr>

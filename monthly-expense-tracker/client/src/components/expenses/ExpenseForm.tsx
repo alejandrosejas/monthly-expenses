@@ -151,78 +151,110 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
         {expense?.id ? 'Edit Expense' : 'Add New Expense'}
       </h2>
       
-      {/* Date field */}
-      <div>
-        <label htmlFor="date" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-          Date
-        </label>
-        <input
-          type="date"
-          id="date"
-          name="date"
-          value={formData.date}
-          onChange={handleChange}
-          className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm
-            ${errors.date ? 'border-red-500' : ''}`}
-        />
-        {errors.date && (
-          <p className="mt-1 text-sm text-red-600">{errors.date}</p>
-        )}
-      </div>
-      
-      {/* Amount field */}
-      <div>
-        <label htmlFor="amount" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-          Amount
-        </label>
-        <div className="mt-1 relative rounded-md shadow-sm">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <span className="text-gray-500 sm:text-sm">$</span>
-          </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Date field */}
+        <div>
+          <label htmlFor="date" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Date
+          </label>
           <input
-            type="number"
-            id="amount"
-            name="amount"
-            value={formData.amount || ''}
+            type="date"
+            id="date"
+            name="date"
+            value={formData.date}
             onChange={handleChange}
-            step="0.01"
-            min="0"
-            placeholder="0.00"
-            className={`block w-full pl-7 pr-12 rounded-md border-gray-300 focus:border-primary-500 focus:ring-primary-500 sm:text-sm
-              ${errors.amount ? 'border-red-500' : ''}`}
+            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm
+              ${errors.date ? 'border-red-500' : ''}
+              h-10 sm:h-auto text-base sm:text-sm touch-manipulation`}
           />
+          {errors.date && (
+            <p className="mt-1 text-sm text-red-600">{errors.date}</p>
+          )}
         </div>
-        {errors.amount && (
-          <p className="mt-1 text-sm text-red-600">{errors.amount}</p>
-        )}
+        
+        {/* Amount field */}
+        <div>
+          <label htmlFor="amount" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Amount
+          </label>
+          <div className="mt-1 relative rounded-md shadow-sm">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <span className="text-gray-500 sm:text-sm">$</span>
+            </div>
+            <input
+              type="number"
+              id="amount"
+              name="amount"
+              value={formData.amount || ''}
+              onChange={handleChange}
+              step="0.01"
+              min="0"
+              placeholder="0.00"
+              inputMode="decimal"
+              className={`block w-full pl-7 pr-12 rounded-md border-gray-300 focus:border-primary-500 focus:ring-primary-500 sm:text-sm
+                ${errors.amount ? 'border-red-500' : ''}
+                h-10 sm:h-auto text-base sm:text-sm touch-manipulation`}
+            />
+          </div>
+          {errors.amount && (
+            <p className="mt-1 text-sm text-red-600">{errors.amount}</p>
+          )}
+        </div>
       </div>
       
-      {/* Category field */}
-      <div>
-        <label htmlFor="category" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-          Category
-        </label>
-        <select
-          id="category"
-          name="category"
-          value={formData.category}
-          onChange={handleChange}
-          className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm
-            ${errors.category ? 'border-red-500' : ''}`}
-        >
-          {categories.length === 0 ? (
-            <option value="">No categories available</option>
-          ) : (
-            categories.map(category => (
-              <option key={category.id} value={category.id}>
-                {category.name}
-              </option>
-            ))
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Category field */}
+        <div>
+          <label htmlFor="category" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Category
+          </label>
+          <select
+            id="category"
+            name="category"
+            value={formData.category}
+            onChange={handleChange}
+            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm
+              ${errors.category ? 'border-red-500' : ''}
+              h-10 sm:h-auto text-base sm:text-sm touch-manipulation py-2`}
+          >
+            {categories.length === 0 ? (
+              <option value="">No categories available</option>
+            ) : (
+              categories.map(category => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))
+            )}
+          </select>
+          {errors.category && (
+            <p className="mt-1 text-sm text-red-600">{errors.category}</p>
           )}
-        </select>
-        {errors.category && (
-          <p className="mt-1 text-sm text-red-600">{errors.category}</p>
-        )}
+        </div>
+        
+        {/* Payment Method field */}
+        <div>
+          <label htmlFor="paymentMethod" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Payment Method
+          </label>
+          <select
+            id="paymentMethod"
+            name="paymentMethod"
+            value={formData.paymentMethod}
+            onChange={handleChange}
+            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm
+              ${errors.paymentMethod ? 'border-red-500' : ''}
+              h-10 sm:h-auto text-base sm:text-sm touch-manipulation py-2`}
+          >
+            <option value={PaymentMethod.CASH}>Cash</option>
+            <option value={PaymentMethod.CREDIT}>Credit Card</option>
+            <option value={PaymentMethod.DEBIT}>Debit Card</option>
+            <option value={PaymentMethod.TRANSFER}>Bank Transfer</option>
+          </select>
+          {errors.paymentMethod && (
+            <p className="mt-1 text-sm text-red-600">{errors.paymentMethod}</p>
+          )}
+        </div>
       </div>
       
       {/* Description field */}
@@ -237,34 +269,12 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
           onChange={handleChange}
           rows={3}
           className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm
-            ${errors.description ? 'border-red-500' : ''}`}
+            ${errors.description ? 'border-red-500' : ''}
+            text-base sm:text-sm touch-manipulation`}
           placeholder="Enter expense description"
         />
         {errors.description && (
           <p className="mt-1 text-sm text-red-600">{errors.description}</p>
-        )}
-      </div>
-      
-      {/* Payment Method field */}
-      <div>
-        <label htmlFor="paymentMethod" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-          Payment Method
-        </label>
-        <select
-          id="paymentMethod"
-          name="paymentMethod"
-          value={formData.paymentMethod}
-          onChange={handleChange}
-          className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm
-            ${errors.paymentMethod ? 'border-red-500' : ''}`}
-        >
-          <option value={PaymentMethod.CASH}>Cash</option>
-          <option value={PaymentMethod.CREDIT}>Credit Card</option>
-          <option value={PaymentMethod.DEBIT}>Debit Card</option>
-          <option value={PaymentMethod.TRANSFER}>Bank Transfer</option>
-        </select>
-        {errors.paymentMethod && (
-          <p className="mt-1 text-sm text-red-600">{errors.paymentMethod}</p>
         )}
       </div>
       
@@ -283,12 +293,13 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
       )}
       
       {/* Form actions */}
-      <div className="flex justify-end space-x-3">
+      <div className="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-3">
         {onCancel && (
           <Button
             type="button"
             variant="outline"
             onClick={onCancel}
+            className="w-full sm:w-auto"
           >
             Cancel
           </Button>
@@ -298,6 +309,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
           variant="primary"
           isLoading={isSubmitting}
           disabled={isSubmitting}
+          className="w-full sm:w-auto"
         >
           {expense?.id ? 'Update Expense' : 'Add Expense'}
         </Button>

@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Expense, Category, ExpenseFilters, PaginatedResponse } from 'shared';
 import { useGet } from '../../hooks/useApi';
-import { formatDate } from '../../utils/date-utils';
+import { formatDate, getMonthStart, getMonthEnd } from '../../utils/date-utils';
 import ExpenseItem from './ExpenseItem';
 import Button from '../common/Button';
+import AdvancedFilters from './AdvancedFilters';
 
 interface ExpenseListProps {
   month: string;
@@ -27,7 +28,146 @@ const ExpenseList: React.FC<ExpenseListProps> = ({
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
+  
+  // State for URL parameters
+  const [urlParams, setUrlParams] = useState<URLSearchParams | null>(null);
 
+  // Initialize URL parameters
+  useEffect(() => {
+    // Only run in browser environment
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      setUrlParams(params);
+      
+      // Load filters from URL parameters
+      const urlFilters: ExpenseFilters = {};
+      
+      // Search term
+      const search = params.get('search');
+      if (search) {
+        setSearchTerm(search);
+        urlFilters.searchTerm = search;
+      }
+      
+      // Sort
+      const sort = params.get('sort');
+      if (sort && ['date', 'amount', 'category'].includes(sort)) {
+        setSortField(sort as 'date' | 'amount' | 'category');
+      }
+      
+      // Direction
+      const direction = params.get('direction');
+      if (direction && ['asc', 'desc'].includes(direction)) {
+        setSortDirection(direction as 'asc' | 'desc');
+      }
+      
+      // Page
+      const page = params.get('page');
+      if (page && !isNaN(parseInt(page))) {
+        setCurrentPage(parseInt(page));
+      }
+      
+      // Categories
+      const categories = params.get('categories');
+      if (categories) {
+        const categoryIds = categories.split(',');
+        setSelectedCategories(categoryIds);
+        urlFilters.categories = categoryIds;
+      }
+      
+      // Min amount
+      const minAmount = params.get('minAmount');
+      if (minAmount && !isNaN(parseFloat(minAmount))) {
+        urlFilters.minAmount = parseFloat(minAmount);
+      }
+      
+      // Max amount
+      const maxAmount = params.get('maxAmount');
+      if (maxAmount && !isNaN(parseFloat(maxAmount))) {
+        urlFilters.maxAmount = parseFloat(maxAmount);
+      }
+      
+      // Payment methods
+      const paymentMethods = params.get('paymentMethods');
+      if (paymentMethods) {
+        urlFilters.paymentMethods = paymentMethods.split(',');
+      }
+      
+      // Date range
+      const startDate = params.get('startDate');
+      if (startDate) {
+        urlFilters.startDate = startDate;
+      }
+      
+      const endDate = params.get('endDate');
+      if (endDate) {
+        urlFilters.endDate = endDate;
+      }
+      
+      // Set filters from URL
+      if (Object.keys(urlFilters).length > 0) {
+        setFilters(urlFilters);
+        setShowFilters(true);
+      }
+    }
+  }, []);
+  
+  // Update URL with current filters
+  const updateUrlParams = useCallback(() => {
+    if (typeof window !== 'undefined' && urlParams) {
+      // Create a new URLSearchParams object
+      const params = new URLSearchParams();
+      
+      // Add current filters to URL
+      if (searchTerm) {
+        params.set('search', searchTerm);
+      }
+      
+      if (sortField !== 'date') {
+        params.set('sort', sortField);
+      }
+      
+      if (sortDirection !== 'desc') {
+        params.set('direction', sortDirection);
+      }
+      
+      if (currentPage > 1) {
+        params.set('page', currentPage.toString());
+      }
+      
+      if (selectedCategories.length > 0) {
+        params.set('categories', selectedCategories.join(','));
+      }
+      
+      if (filters.minAmount) {
+        params.set('minAmount', filters.minAmount.toString());
+      }
+      
+      if (filters.maxAmount) {
+        params.set('maxAmount', filters.maxAmount.toString());
+      }
+      
+      if (filters.paymentMethods && filters.paymentMethods.length > 0) {
+        params.set('paymentMethods', filters.paymentMethods.join(','));
+      }
+      
+      if (filters.startDate) {
+        params.set('startDate', filters.startDate);
+      }
+      
+      if (filters.endDate) {
+        params.set('endDate', filters.endDate);
+      }
+      
+      // Update browser URL without reloading the page
+      const newUrl = params.toString() 
+        ? `${window.location.pathname}?${params.toString()}`
+        : window.location.pathname;
+      
+      window.history.replaceState({}, '', newUrl);
+    }
+  }, [searchTerm, sortField, sortDirection, currentPage, selectedCategories, filters, urlParams]);
+  
   // API call to get expenses
   const {
     data: expensesResponse,
@@ -42,15 +182,18 @@ const ExpenseList: React.FC<ExpenseListProps> = ({
     direction: sortDirection,
     search: searchTerm,
     ...(selectedCategories.length > 0 ? { categories: selectedCategories.join(',') } : {}),
-    ...(filters.minAmount ? { minAmount: filters.minAmount.toString() } : {}),
-    ...(filters.maxAmount ? { maxAmount: filters.maxAmount.toString() } : {}),
-    ...(filters.paymentMethods ? { paymentMethods: filters.paymentMethods.join(',') } : {}),
+    ...(filters.minAmount !== undefined ? { minAmount: filters.minAmount.toString() } : {}),
+    ...(filters.maxAmount !== undefined ? { maxAmount: filters.maxAmount.toString() } : {}),
+    ...(filters.paymentMethods && filters.paymentMethods.length > 0 ? { paymentMethods: filters.paymentMethods.join(',') } : {}),
+    ...(filters.startDate ? { startDate: filters.startDate } : {}),
+    ...(filters.endDate ? { endDate: filters.endDate } : {}),
   });
 
   // Fetch expenses when dependencies change
   useEffect(() => {
     fetchExpenses();
-  }, [month, currentPage, sortField, sortDirection, searchTerm, selectedCategories, filters]);
+    updateUrlParams();
+  }, [month, currentPage, sortField, sortDirection, searchTerm, selectedCategories, filters, updateUrlParams]);
 
   // Handle search input change
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -113,6 +256,23 @@ const ExpenseList: React.FC<ExpenseListProps> = ({
     
     setCurrentPage(1); // Reset to first page on filter change
   };
+  
+  // Handle advanced filter changes
+  const handleAdvancedFilterChange = (newFilters: ExpenseFilters) => {
+    setFilters(newFilters);
+    
+    // Update selected categories if they've changed
+    if (newFilters.categories && JSON.stringify(newFilters.categories) !== JSON.stringify(selectedCategories)) {
+      setSelectedCategories(newFilters.categories);
+    }
+    
+    // Update search term if it's changed
+    if (newFilters.searchTerm !== searchTerm) {
+      setSearchTerm(newFilters.searchTerm || '');
+    }
+    
+    setCurrentPage(1); // Reset to first page on filter change
+  };
 
   // Clear all filters
   const clearFilters = () => {
@@ -122,6 +282,11 @@ const ExpenseList: React.FC<ExpenseListProps> = ({
     setSortField('date');
     setSortDirection('desc');
     setCurrentPage(1);
+    
+    // Clear URL parameters
+    if (typeof window !== 'undefined') {
+      window.history.replaceState({}, '', window.location.pathname);
+    }
   };
 
   // Calculate pagination
@@ -173,109 +338,17 @@ const ExpenseList: React.FC<ExpenseListProps> = ({
 
       {/* Advanced filters */}
       {showFilters && (
-        <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-md border border-gray-200 dark:border-gray-600">
-          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Advanced Filters</h3>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {/* Amount range */}
-            <div>
-              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Amount Range
-              </label>
-              <div className="flex space-x-2">
-                <input
-                  type="number"
-                  name="minAmount"
-                  placeholder="Min"
-                  value={filters.minAmount || ''}
-                  onChange={handleFilterChange}
-                  className="w-full px-3 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
-                />
-                <input
-                  type="number"
-                  name="maxAmount"
-                  placeholder="Max"
-                  value={filters.maxAmount || ''}
-                  onChange={handleFilterChange}
-                  className="w-full px-3 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
-                />
-              </div>
-            </div>
-            
-            {/* Payment methods */}
-            <div>
-              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Payment Method
-              </label>
-              <div className="flex flex-wrap gap-2">
-                <label className="inline-flex items-center">
-                  <input
-                    type="checkbox"
-                    name="payment_cash"
-                    checked={filters.paymentMethods?.includes('cash') || false}
-                    onChange={handleFilterChange}
-                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-                  />
-                  <span className="ml-1 text-sm text-gray-700 dark:text-gray-300">Cash</span>
-                </label>
-                <label className="inline-flex items-center">
-                  <input
-                    type="checkbox"
-                    name="payment_credit"
-                    checked={filters.paymentMethods?.includes('credit') || false}
-                    onChange={handleFilterChange}
-                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-                  />
-                  <span className="ml-1 text-sm text-gray-700 dark:text-gray-300">Credit</span>
-                </label>
-                <label className="inline-flex items-center">
-                  <input
-                    type="checkbox"
-                    name="payment_debit"
-                    checked={filters.paymentMethods?.includes('debit') || false}
-                    onChange={handleFilterChange}
-                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-                  />
-                  <span className="ml-1 text-sm text-gray-700 dark:text-gray-300">Debit</span>
-                </label>
-                <label className="inline-flex items-center">
-                  <input
-                    type="checkbox"
-                    name="payment_transfer"
-                    checked={filters.paymentMethods?.includes('transfer') || false}
-                    onChange={handleFilterChange}
-                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-                  />
-                  <span className="ml-1 text-sm text-gray-700 dark:text-gray-300">Transfer</span>
-                </label>
-              </div>
-            </div>
-            
-            {/* Categories */}
-            <div>
-              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Categories
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {categories.map(category => (
-                  <label key={category.id} className="inline-flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={selectedCategories.includes(category.id)}
-                      onChange={() => handleCategoryChange(category.id)}
-                      className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-                    />
-                    <span className="ml-1 text-sm text-gray-700 dark:text-gray-300">{category.name}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
+        <AdvancedFilters
+          filters={filters}
+          categories={categories}
+          onFilterChange={handleAdvancedFilterChange}
+          onClearFilters={clearFilters}
+          month={month}
+        />
       )}
 
-      {/* Expenses table */}
-      <div className="overflow-x-auto">
+      {/* Expenses table - Desktop view */}
+      <div className="hidden md:block overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead className="bg-gray-50 dark:bg-gray-700">
             <tr>
@@ -369,41 +442,179 @@ const ExpenseList: React.FC<ExpenseListProps> = ({
           </tbody>
         </table>
       </div>
+      
+      {/* Mobile view for expenses */}
+      <div className="md:hidden">
+        {loadingExpenses ? (
+          <div className="text-center py-4 text-gray-500 dark:text-gray-400">
+            Loading expenses...
+          </div>
+        ) : expensesError ? (
+          <div className="text-center py-4 text-red-500">
+            Error loading expenses. Please try again.
+          </div>
+        ) : expensesResponse?.data?.length === 0 ? (
+          <div className="text-center py-4 text-gray-500 dark:text-gray-400">
+            No expenses found for this month.
+            {(searchTerm || selectedCategories.length > 0 || Object.keys(filters).length > 0) && (
+              <span> Try clearing your filters.</span>
+            )}
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {expensesResponse?.data?.map(expense => {
+              const category = categories.find(c => c.id === expense.category);
+              return (
+                <div 
+                  key={expense.id} 
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 border border-gray-200 dark:border-gray-700"
+                >
+                  <div className="flex justify-between items-start mb-2">
+                    <div className="font-medium text-gray-900 dark:text-white">
+                      {formatDate(expense.date)}
+                    </div>
+                    <div className="font-bold text-gray-900 dark:text-white">
+                      ${expense.amount.toFixed(2)}
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center mb-2">
+                    <span 
+                      className="inline-block w-3 h-3 rounded-full mr-2" 
+                      style={{ backgroundColor: category?.color || '#CBD5E0' }}
+                    ></span>
+                    <span className="text-sm text-gray-600 dark:text-gray-300">
+                      {category?.name || 'Uncategorized'}
+                    </span>
+                  </div>
+                  
+                  <p className="text-sm text-gray-600 dark:text-gray-300 mb-2 line-clamp-2">
+                    {expense.description}
+                  </p>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      {expense.paymentMethod.charAt(0).toUpperCase() + expense.paymentMethod.slice(1)}
+                    </span>
+                    
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => onEditExpense(expense)}
+                        className="p-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 focus:outline-none"
+                        aria-label="Edit expense"
+                      >
+                        <svg className="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                          <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (window.confirm('Are you sure you want to delete this expense?')) {
+                            // Delete expense logic would go here
+                            onExpenseDeleted();
+                          }
+                        }}
+                        className="p-2 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 focus:outline-none"
+                        aria-label="Delete expense"
+                      >
+                        <svg className="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
 
       {/* Pagination */}
       {!loadingExpenses && !expensesError && expensesResponse?.data?.length > 0 && (
-        <div className="flex justify-between items-center mt-4">
-          <div className="text-sm text-gray-700 dark:text-gray-300">
+        <div className="flex flex-col sm:flex-row justify-between items-center mt-4 space-y-3 sm:space-y-0">
+          <div className="text-sm text-gray-700 dark:text-gray-300 text-center sm:text-left">
             Showing <span className="font-medium">{((currentPage - 1) * itemsPerPage) + 1}</span> to{' '}
             <span className="font-medium">
               {Math.min(currentPage * itemsPerPage, expensesResponse?.pagination?.total || 0)}
             </span> of{' '}
             <span className="font-medium">{expensesResponse?.pagination?.total || 0}</span> expenses
           </div>
-          <div className="flex space-x-1">
+          <div className="flex flex-wrap justify-center gap-1">
             <Button
               variant="outline"
               size="sm"
               onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
+              className="touch-manipulation"
             >
               Previous
             </Button>
-            {pageNumbers.map(number => (
-              <Button
-                key={number}
-                variant={currentPage === number ? 'primary' : 'outline'}
-                size="sm"
-                onClick={() => setCurrentPage(number)}
-              >
-                {number}
-              </Button>
-            ))}
+            {/* Show limited page numbers on mobile */}
+            {pageNumbers.length <= 5 ? (
+              pageNumbers.map(number => (
+                <Button
+                  key={number}
+                  variant={currentPage === number ? 'primary' : 'outline'}
+                  size="sm"
+                  onClick={() => setCurrentPage(number)}
+                  className="touch-manipulation"
+                >
+                  {number}
+                </Button>
+              ))
+            ) : (
+              <>
+                {/* First page */}
+                <Button
+                  variant={currentPage === 1 ? 'primary' : 'outline'}
+                  size="sm"
+                  onClick={() => setCurrentPage(1)}
+                  className="touch-manipulation"
+                >
+                  1
+                </Button>
+                
+                {/* Ellipsis or second page */}
+                {currentPage > 3 && (
+                  <span className="px-2 py-1 text-gray-500 dark:text-gray-400">...</span>
+                )}
+                
+                {/* Current page and neighbors */}
+                {currentPage !== 1 && currentPage !== totalPages && (
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    className="touch-manipulation"
+                  >
+                    {currentPage}
+                  </Button>
+                )}
+                
+                {/* Ellipsis or second-to-last page */}
+                {currentPage < totalPages - 2 && (
+                  <span className="px-2 py-1 text-gray-500 dark:text-gray-400">...</span>
+                )}
+                
+                {/* Last page */}
+                {totalPages > 1 && (
+                  <Button
+                    variant={currentPage === totalPages ? 'primary' : 'outline'}
+                    size="sm"
+                    onClick={() => setCurrentPage(totalPages)}
+                    className="touch-manipulation"
+                  >
+                    {totalPages}
+                  </Button>
+                )}
+              </>
+            )}
             <Button
               variant="outline"
               size="sm"
               onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
               disabled={currentPage === totalPages}
+              className="touch-manipulation"
             >
               Next
             </Button>

@@ -55,14 +55,14 @@
   - Write component tests for form validation and submission
   - _Requirements: 1.1, 1.2, 1.3, 2.1_
 
-- [-] 9. Implement expense list and display components
+- [x] 9. Implement expense list and display components
   - Create ExpenseList component with sorting and filtering
   - Implement ExpenseItem component with edit/delete actions
   - Add search functionality across expense fields
   - Write tests for list operations and user interactions
   - _Requirements: 3.1, 3.2, 5.1, 5.2, 6.1, 6.2, 6.3, 6.4_
 
-- [ ] 10. Build monthly navigation and summary features
+- [x] 10. Build monthly navigation and summary features
   - Implement MonthNavigator component for month selection
   - Create monthly summary calculations and display
   - Add empty state handling for months with no expenses

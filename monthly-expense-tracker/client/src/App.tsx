@@ -1,6 +1,8 @@
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import Button from './components/common/Button';
+import MonthNavigator from './components/common/MonthNavigator';
+import { getCurrentMonth } from './utils/date-utils';
 
 // Layout components
 const Layout = ({ children }: { children: React.ReactNode }) => {
@@ -96,46 +98,132 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-// Page placeholders
-const Dashboard = () => (
-  <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-    <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Dashboard</h2>
-    <p className="text-gray-600 dark:text-gray-300">Monthly expense summary will be displayed here.</p>
-  </div>
-);
+// Dashboard page with monthly summary
+import MonthSummary from './components/expenses/MonthSummary';
 
-import ExpenseForm from './components/expenses/ExpenseForm';
-import { useGet } from './hooks/useApi';
-import { Category } from 'shared';
-
-const Expenses = () => {
-  const { data: categoriesResponse, loading: loadingCategories, error: categoriesError, execute: fetchCategories } = 
-    useGet<{ data: Category[] }>('/api/categories');
+const Dashboard = () => {
+  const [currentMonth, setCurrentMonth] = useState(getCurrentMonth());
   
-  const [showForm, setShowForm] = useState(false);
+  // Fetch categories
+  const { 
+    data: categoriesResponse, 
+    loading: loadingCategories, 
+    error: categoriesError, 
+    execute: fetchCategories 
+  } = useGet<{ data: Category[] }>('/api/categories');
   
   // Fetch categories when component mounts
   useEffect(() => {
     fetchCategories();
   }, []);
   
-  const handleExpenseAdded = () => {
+  return (
+    <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 space-y-4 sm:space-y-0">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h2>
+        </div>
+        <MonthNavigator 
+          currentMonth={currentMonth} 
+          onMonthChange={setCurrentMonth} 
+        />
+      </div>
+      
+      {loadingCategories ? (
+        <div className="animate-pulse space-y-4">
+          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="h-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
+            <div className="h-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
+            <div className="h-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
+          </div>
+        </div>
+      ) : categoriesError ? (
+        <div className="bg-red-50 dark:bg-red-900 p-4 rounded-md">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-red-800 dark:text-red-200">Error loading categories</h3>
+              <div className="mt-2 text-sm text-red-700 dark:text-red-300">
+                <p>Unable to load categories. Please try again.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <MonthSummary 
+          month={currentMonth}
+          categories={categoriesResponse?.data || []}
+        />
+      )}
+    </div>
+  );
+};
+
+import ExpenseForm from './components/expenses/ExpenseForm';
+import ExpenseList from './components/expenses/ExpenseList';
+import { useGet } from './hooks/useApi';
+import { Category, Expense, formatMonthYear, getPreviousMonth, getNextMonth } from 'shared';
+
+const Expenses = () => {
+  const [currentMonth, setCurrentMonth] = useState(getCurrentMonth());
+  const [showForm, setShowForm] = useState(false);
+  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
+  
+  // Fetch categories
+  const { 
+    data: categoriesResponse, 
+    loading: loadingCategories, 
+    error: categoriesError, 
+    execute: fetchCategories 
+  } = useGet<{ data: Category[] }>('/api/categories');
+  
+  // Fetch categories when component mounts
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+  
+  // Handle expense added or updated
+  const handleExpenseSuccess = () => {
     setShowForm(false);
-    // In a real implementation, we would refresh the expenses list here
+    setEditingExpense(null);
+  };
+  
+  // Handle edit expense
+  const handleEditExpense = (expense: Expense) => {
+    setEditingExpense(expense);
+    setShowForm(true);
   };
   
   return (
     <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Expenses</h2>
-        <Button 
-          variant="primary" 
-          onClick={() => setShowForm(!showForm)}
-        >
-          {showForm ? 'Cancel' : 'Add Expense'}
-        </Button>
+      {/* Header with month navigation */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 space-y-4 sm:space-y-0">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Expenses</h2>
+        </div>
+        <div className="flex items-center space-x-4">
+          <MonthNavigator 
+            currentMonth={currentMonth} 
+            onMonthChange={setCurrentMonth} 
+          />
+          <Button 
+            variant="primary" 
+            onClick={() => {
+              setEditingExpense(null);
+              setShowForm(!showForm);
+            }}
+          >
+            {showForm && !editingExpense ? 'Cancel' : 'Add Expense'}
+          </Button>
+        </div>
       </div>
       
+      {/* Expense form */}
       {showForm && (
         <div className="mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
           {loadingCategories ? (
@@ -144,18 +232,26 @@ const Expenses = () => {
             <p className="text-red-600">Error loading categories. Please try again.</p>
           ) : (
             <ExpenseForm 
+              expense={editingExpense || undefined}
               categories={categoriesResponse?.data || []}
-              onSuccess={handleExpenseAdded}
-              onCancel={() => setShowForm(false)}
+              onSuccess={handleExpenseSuccess}
+              onCancel={() => {
+                setShowForm(false);
+                setEditingExpense(null);
+              }}
             />
           )}
         </div>
       )}
       
-      {!showForm && (
-        <p className="text-gray-600 dark:text-gray-300">
-          Expense list will be implemented in a future task.
-        </p>
+      {/* Expense list */}
+      {!loadingCategories && !categoriesError && (
+        <ExpenseList
+          month={currentMonth}
+          categories={categoriesResponse?.data || []}
+          onEditExpense={handleEditExpense}
+          onExpenseDeleted={fetchCategories}
+        />
       )}
     </div>
   );

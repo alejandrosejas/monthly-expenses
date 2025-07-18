@@ -264,12 +264,66 @@ const Categories = () => (
   </div>
 );
 
-const Budgets = () => (
-  <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-    <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Budgets</h2>
-    <p className="text-gray-600 dark:text-gray-300">Budget management interface will be implemented here.</p>
-  </div>
-);
+import BudgetTracker from './components/budget/BudgetTracker';
+
+const Budgets = () => {
+  const [currentMonth, setCurrentMonth] = useState(getCurrentMonth());
+  
+  // Fetch categories
+  const { 
+    data: categoriesResponse, 
+    loading: loadingCategories, 
+    error: categoriesError, 
+    execute: fetchCategories 
+  } = useGet<{ data: Category[] }>('/api/categories');
+  
+  // Fetch categories when component mounts
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+  
+  return (
+    <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 space-y-4 sm:space-y-0">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Budgets</h2>
+        </div>
+        <MonthNavigator 
+          currentMonth={currentMonth} 
+          onMonthChange={setCurrentMonth} 
+        />
+      </div>
+      
+      {loadingCategories ? (
+        <div className="animate-pulse space-y-4">
+          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
+          <div className="h-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
+        </div>
+      ) : categoriesError ? (
+        <div className="bg-red-50 dark:bg-red-900 p-4 rounded-md">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-red-800 dark:text-red-200">Error loading categories</h3>
+              <div className="mt-2 text-sm text-red-700 dark:text-red-300">
+                <p>Unable to load categories. Please try again.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <BudgetTracker 
+          month={currentMonth}
+          categories={categoriesResponse?.data || []}
+        />
+      )}
+    </div>
+  );
+};
 
 const Analytics = () => (
   <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">

@@ -111,7 +111,7 @@
   - Write tests for error scenarios and user feedback
   - _Requirements: Error handling for all user-facing features_
 
-- [ ] 17. Implement category management UI
+- [x] 17. Implement category management UI
   - Create CategoryManager component for adding/editing categories
   - Add color picker and category validation
   - Implement category deletion with expense reassignment

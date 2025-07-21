@@ -4,6 +4,29 @@ import { useExpenseContext } from '../contexts/ExpenseContext';
 import { Expense, Category, Budget, ExpenseInput, CategoryInput, BudgetInput } from 'shared';
 
 import { vi } from 'vitest';
+import { it } from 'date-fns/locale';
+import { it } from 'date-fns/locale';
+import { it } from 'date-fns/locale';
+import { it } from 'date-fns/locale';
+import { it } from 'date-fns/locale';
+import { it } from 'date-fns/locale';
+import { it } from 'date-fns/locale';
+import { it } from 'date-fns/locale';
+import { it } from 'date-fns/locale';
+import { it } from 'date-fns/locale';
+import { it } from 'date-fns/locale';
+import { it } from 'date-fns/locale';
+import { it } from 'date-fns/locale';
+import { it } from 'date-fns/locale';
+import { it } from 'date-fns/locale';
+import { it } from 'date-fns/locale';
+import { it } from 'date-fns/locale';
+import { it } from 'date-fns/locale';
+import { it } from 'date-fns/locale';
+import { it } from 'date-fns/locale';
+import { it } from 'date-fns/locale';
+import { it } from 'date-fns/locale';
+import { it } from 'date-fns/locale';
 
 // Mock the expense context
 vi.mock('../contexts/ExpenseContext');

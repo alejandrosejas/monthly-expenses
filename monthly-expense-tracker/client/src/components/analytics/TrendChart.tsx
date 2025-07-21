@@ -167,6 +167,7 @@ const TrendChart: React.FC<TrendChartProps> = ({ month, months = 6 }) => {
               <th className="text-left text-gray-600 dark:text-gray-300 px-2">Month</th>
               <th className="text-right text-gray-600 dark:text-gray-300 px-2">Total Expenses</th>
               <th className="text-right text-gray-600 dark:text-gray-300 px-2">Change</th>
+              <th className="text-right text-gray-600 dark:text-gray-300 px-2">Trend</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -176,6 +177,18 @@ const TrendChart: React.FC<TrendChartProps> = ({ month, months = 6 }) => {
               const changePercent = prevTotal && prevTotal !== 0 
                 ? (change! / prevTotal) * 100 
                 : null;
+              
+              // Calculate trend indicator
+              const getTrendIndicator = () => {
+                if (change === null) return '—';
+                if (Math.abs(change) < 10) return '→'; // Stable (less than $10 change)
+                return change > 0 ? '↗' : '↘'; // Up or down trend
+              };
+              
+              const getTrendColor = () => {
+                if (change === null || Math.abs(change) < 10) return 'text-gray-500 dark:text-gray-400';
+                return change > 0 ? 'text-red-500 dark:text-red-400' : 'text-green-500 dark:text-green-400';
+              };
               
               return (
                 <tr key={item.month}>
@@ -192,7 +205,7 @@ const TrendChart: React.FC<TrendChartProps> = ({ month, months = 6 }) => {
                           change < 0 ? 'text-green-600 dark:text-green-400' : 
                           'text-gray-600 dark:text-gray-400'}
                       `}>
-                        {change > 0 ? '+' : ''}{change.toFixed(2)} 
+                        {change > 0 ? '+' : ''}${change.toFixed(2)} 
                         <span className="hidden sm:inline">
                           ({changePercent !== null ? (
                             <>{changePercent > 0 ? '+' : ''}{changePercent.toFixed(1)}%</>
@@ -200,8 +213,11 @@ const TrendChart: React.FC<TrendChartProps> = ({ month, months = 6 }) => {
                         </span>
                       </span>
                     ) : (
-                      <span className="text-gray-500 dark:text-gray-400">-</span>
+                      <span className="text-gray-500 dark:text-gray-400">—</span>
                     )}
+                  </td>
+                  <td className={`text-right py-2 px-2 text-lg ${getTrendColor()}`}>
+                    {getTrendIndicator()}
                   </td>
                 </tr>
               );
@@ -209,6 +225,54 @@ const TrendChart: React.FC<TrendChartProps> = ({ month, months = 6 }) => {
           </tbody>
         </table>
       </div>
+      
+      {/* Trend Analysis Summary */}
+      {totalsResponse?.data && totalsResponse.data.length > 1 && (
+        <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900 rounded-lg">
+          <h4 className="text-sm font-medium text-blue-800 dark:text-blue-200 mb-2">
+            Trend Analysis
+          </h4>
+          <div className="space-y-1 text-sm text-blue-700 dark:text-blue-300">
+            {(() => {
+              const data = totalsResponse.data;
+              const recentMonths = data.slice(-3); // Last 3 months
+              const avgSpending = data.reduce((sum, item) => sum + item.total, 0) / data.length;
+              const currentMonth = data[data.length - 1];
+              const previousMonth = data[data.length - 2];
+              
+              // Calculate trend direction over last 3 months
+              const isIncreasingTrend = recentMonths.length >= 2 && 
+                recentMonths[recentMonths.length - 1].total > recentMonths[0].total;
+              
+              const monthlyChanges = data.slice(1).map((item, index) => 
+                item.total - data[index].total
+              );
+              const avgMonthlyChange = monthlyChanges.length > 0 
+                ? monthlyChanges.reduce((sum, change) => sum + change, 0) / monthlyChanges.length 
+                : 0;
+              
+              return (
+                <>
+                  <p>
+                    • Average monthly spending: ${avgSpending.toFixed(2)}
+                  </p>
+                  <p>
+                    • Current month vs average: {currentMonth.total > avgSpending ? '+' : ''}
+                    ${(currentMonth.total - avgSpending).toFixed(2)} 
+                    ({((currentMonth.total - avgSpending) / avgSpending * 100).toFixed(1)}%)
+                  </p>
+                  <p>
+                    • 3-month trend: {isIncreasingTrend ? 'Increasing' : 'Decreasing'} spending pattern
+                  </p>
+                  <p>
+                    • Average monthly change: {avgMonthlyChange > 0 ? '+' : ''}${avgMonthlyChange.toFixed(2)}
+                  </p>
+                </>
+              );
+            })()}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

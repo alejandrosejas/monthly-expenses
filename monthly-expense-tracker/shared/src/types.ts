@@ -59,6 +59,23 @@ export interface MonthComparison {
   percentageChange: number;
 }
 
+export interface TrendAnalysis {
+  currentMonth: {
+    month: string;
+    total: number;
+  };
+  averageSpending: number;
+  monthlyChanges: Array<{
+    month: string;
+    change: number;
+    percentageChange: number;
+  }>;
+  trendDirection: 'increasing' | 'decreasing' | 'stable';
+  averageMonthlyChange: number;
+  volatility: number; // Standard deviation of monthly changes
+  insights: string[];
+}
+
 // Types for filtering and pagination
 export interface ExpenseFilters {
   startDate?: string;

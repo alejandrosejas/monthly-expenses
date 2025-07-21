@@ -103,4 +103,25 @@ router.get(
   }
 );
 
+/**
+ * GET /api/analytics/trend-analysis/:month
+ * Get trend analysis for a specific month with historical context
+ */
+router.get(
+  '/trend-analysis/:month',
+  validateRequest({ params: MonthParamSchema }),
+  async (req, res, next) => {
+    try {
+      const { month } = req.params;
+      const months = req.query.months ? parseInt(req.query.months as string, 10) : 6;
+      
+      const trendAnalysis = await analyticsService.getTrendAnalysis(month, months);
+      
+      return res.json(createSuccessResponse(trendAnalysis));
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
 export default router;

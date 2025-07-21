@@ -351,35 +351,67 @@ const Budgets = () => {
 
 import ExpenseChart from './components/analytics/ExpenseChart';
 import TrendChart from './components/analytics/TrendChart';
+import MonthComparison from './components/analytics/MonthComparison';
 
 const Analytics = () => {
   const [currentMonth, setCurrentMonth] = useState(getCurrentMonth());
   
+  // Calculate previous month for comparison
+  const previousMonth = (() => {
+    const date = new Date(`${currentMonth}-01`);
+    date.setMonth(date.getMonth() - 1);
+    return date.toISOString().substring(0, 7); // YYYY-MM format
+  })();
+  
   return (
-    <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 space-y-4 sm:space-y-0">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Analytics</h2>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Analytics</h2>
+            <p className="text-gray-600 dark:text-gray-300 mt-1">
+              Analyze your spending patterns and trends
+            </p>
+          </div>
+          <MonthNavigator 
+            currentMonth={currentMonth} 
+            onMonthChange={setCurrentMonth} 
+          />
         </div>
-        <MonthNavigator 
-          currentMonth={currentMonth} 
-          onMonthChange={setCurrentMonth} 
-        />
       </div>
       
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+      {/* Charts Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <ExpenseChart month={currentMonth} />
         <TrendChart month={currentMonth} />
       </div>
       
-      <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg mb-6">
-        <h3 className="text-lg font-medium mb-2 text-gray-900 dark:text-white">
-          Insights
+      {/* Month-over-Month Comparison */}
+      <MonthComparison 
+        currentMonth={currentMonth} 
+        previousMonth={previousMonth} 
+      />
+      
+      {/* Insights */}
+      <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+        <h3 className="text-lg font-medium mb-4 text-gray-900 dark:text-white">
+          How to Use Analytics
         </h3>
-        <p className="text-gray-600 dark:text-gray-300">
-          View your spending patterns and trends to make informed financial decisions.
-          The charts above show your expense breakdown by category and spending trends over time.
-        </p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600 dark:text-gray-300">
+          <div>
+            <h4 className="font-medium text-gray-900 dark:text-white mb-2">Category Breakdown</h4>
+            <p>See where your money goes each month with visual category breakdowns and percentages.</p>
+          </div>
+          <div>
+            <h4 className="font-medium text-gray-900 dark:text-white mb-2">Spending Trends</h4>
+            <p>Track your spending patterns over time with trend analysis and month-over-month changes.</p>
+          </div>
+          <div>
+            <h4 className="font-medium text-gray-900 dark:text-white mb-2">Month Comparison</h4>
+            <p>Compare current month spending with previous months to identify changes and patterns.</p>
+          </div>
+        </div>
       </div>
     </div>
   );

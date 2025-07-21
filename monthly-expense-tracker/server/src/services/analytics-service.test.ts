@@ -182,4 +182,92 @@ describe('AnalyticsService', () => {
       expect(entertainment?.percentageChange).toBe(100); // New category, so 100% increase
     });
   });
+
+  describe('getTrendAnalysis', () => {
+    it('should return comprehensive trend analysis', async () => {
+      // Mock monthly totals data
+      const mockMonthlyTotals = [
+        { month: '2023-01', total: 400 },
+        { month: '2023-02', total: 500 },
+        { month: '2023-03', total: 450 },
+        { month: '2023-04', total: 600 },
+        { month: '2023-05', total: 550 },
+        { month: '2023-06', total: 700 }
+      ];
+
+      // Setup mock for getMonthlyTotals
+      vi.spyOn(analyticsService, 'getMonthlyTotals').mockResolvedValue(mockMonthlyTotals);
+
+      // Execute
+      const result = await analyticsService.getTrendAnalysis('2023-06', 6);
+
+      // Verify
+      expect(analyticsService.getMonthlyTotals).toHaveBeenCalledWith('2023-06', 6);
+      
+      // Check basic structure
+      expect(result.currentMonth.month).toBe('2023-06');
+      expect(result.currentMonth.total).toBe(700);
+      
+      // Check average spending calculation
+      const expectedAverage = (400 + 500 + 450 + 600 + 550 + 700) / 6;
+      expect(result.averageSpending).toBeCloseTo(expectedAverage, 2);
+      
+      // Check monthly changes
+      expect(result.monthlyChanges).toHaveLength(5); // 6 months - 1 = 5 changes
+      expect(result.monthlyChanges[0].month).toBe('2023-02');
+      expect(result.monthlyChanges[0].change).toBe(100); // 500 - 400
+      expect(result.monthlyChanges[0].percentageChange).toBe(25); // (100/400) * 100
+      
+      // Check trend direction (should be increasing since last 3 months: 600, 550, 700)
+      expect(result.trendDirection).toBe('increasing');
+      
+      // Check that insights are generated
+      expect(result.insights).toBeInstanceOf(Array);
+      expect(result.insights.length).toBeGreaterThan(0);
+      
+      // Check volatility is calculated
+      expect(result.volatility).toBeGreaterThan(0);
+      
+      // Check average monthly change
+      const expectedAvgChange = (100 - 50 + 150 - 50 + 150) / 5; // Sum of changes / number of changes
+      expect(result.averageMonthlyChange).toBeCloseTo(expectedAvgChange, 2);
+    });
+
+    it('should handle decreasing trend', async () => {
+      // Mock monthly totals with decreasing trend
+      const mockMonthlyTotals = [
+        { month: '2023-01', total: 700 },
+        { month: '2023-02', total: 600 },
+        { month: '2023-03', total: 500 }
+      ];
+
+      vi.spyOn(analyticsService, 'getMonthlyTotals').mockResolvedValue(mockMonthlyTotals);
+
+      const result = await analyticsService.getTrendAnalysis('2023-03', 3);
+
+      expect(result.trendDirection).toBe('decreasing');
+    });
+
+    it('should handle stable trend', async () => {
+      // Mock monthly totals with stable trend
+      const mockMonthlyTotals = [
+        { month: '2023-01', total: 500 },
+        { month: '2023-02', total: 510 },
+        { month: '2023-03', total: 505 }
+      ];
+
+      vi.spyOn(analyticsService, 'getMonthlyTotals').mockResolvedValue(mockMonthlyTotals);
+
+      const result = await analyticsService.getTrendAnalysis('2023-03', 3);
+
+      expect(result.trendDirection).toBe('stable');
+    });
+
+    it('should throw error when no data available', async () => {
+      vi.spyOn(analyticsService, 'getMonthlyTotals').mockResolvedValue([]);
+
+      await expect(analyticsService.getTrendAnalysis('2023-03', 3))
+        .rejects.toThrow('No data available for trend analysis');
+    });
+  });
 });

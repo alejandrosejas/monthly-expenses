@@ -1,4 +1,4 @@
-import { CategoryBreakdown, MonthlyTotal, DailyTotal, MonthComparison } from 'shared';
+import { CategoryBreakdown, MonthlyTotal, DailyTotal, MonthComparison, TrendAnalysis } from 'shared';
 import { ExpenseRepository } from '../database/expense-repository';
 import { CategoryRepository } from '../database/category-repository';
 import { getMonthStart, getMonthEnd } from '../utils';
@@ -169,5 +169,112 @@ export class AnalyticsService {
     
     // Sort by absolute difference descending
     return comparison.sort((a, b) => Math.abs(b.difference) - Math.abs(a.difference));
+  }
+
+  /**
+   * Get comprehensive trend analysis for a specific month
+   */
+  async getTrendAnalysis(currentMonth: string, months = 6): Promise<TrendAnalysis> {
+    // Get monthly totals for the specified period
+    const monthlyTotals = await this.getMonthlyTotals(currentMonth, months);
+    
+    if (monthlyTotals.length === 0) {
+      throw new Error('No data available for trend analysis');
+    }
+    
+    // Calculate basic statistics
+    const totalSpending = monthlyTotals.reduce((sum, item) => sum + item.total, 0);
+    const averageSpending = totalSpending / monthlyTotals.length;
+    const currentMonthData = monthlyTotals[monthlyTotals.length - 1];
+    
+    // Calculate month-over-month changes
+    const monthlyChanges = monthlyTotals.slice(1).map((item, index) => {
+      const previousTotal = monthlyTotals[index].total;
+      const change = item.total - previousTotal;
+      const percentageChange = previousTotal > 0 ? (change / previousTotal) * 100 : 0;
+      
+      return {
+        month: item.month,
+        change,
+        percentageChange
+      };
+    });
+    
+    // Calculate average monthly change
+    const totalChange = monthlyChanges.reduce((sum, item) => sum + item.change, 0);
+    const averageMonthlyChange = monthlyChanges.length > 0 ? totalChange / monthlyChanges.length : 0;
+    
+    // Calculate volatility (standard deviation of changes)
+    const changeVariances = monthlyChanges.map(item => 
+      Math.pow(item.change - averageMonthlyChange, 2)
+    );
+    const volatility = changeVariances.length > 0 
+      ? Math.sqrt(changeVariances.reduce((sum, variance) => sum + variance, 0) / changeVariances.length)
+      : 0;
+    
+    // Determine trend direction
+    let trendDirection: 'increasing' | 'decreasing' | 'stable' = 'stable';
+    if (monthlyTotals.length >= 3) {
+      const recentMonths = monthlyTotals.slice(-3);
+      const firstRecent = recentMonths[0].total;
+      const lastRecent = recentMonths[recentMonths.length - 1].total;
+      const trendThreshold = averageSpending * 0.1; // 10% of average spending
+      
+      if (lastRecent - firstRecent > trendThreshold) {
+        trendDirection = 'increasing';
+      } else if (firstRecent - lastRecent > trendThreshold) {
+        trendDirection = 'decreasing';
+      }
+    }
+    
+    // Generate insights
+    const insights: string[] = [];
+    
+    // Current month vs average
+    const currentVsAverage = currentMonthData.total - averageSpending;
+    const currentVsAveragePercent = (currentVsAverage / averageSpending) * 100;
+    
+    if (Math.abs(currentVsAveragePercent) > 15) {
+      insights.push(
+        `Current month spending is ${currentVsAveragePercent > 0 ? 'above' : 'below'} average by ${Math.abs(currentVsAveragePercent).toFixed(1)}%`
+      );
+    }
+    
+    // Volatility insights
+    if (volatility > averageSpending * 0.2) {
+      insights.push('Spending patterns show high volatility - consider budgeting for consistency');
+    } else if (volatility < averageSpending * 0.05) {
+      insights.push('Spending patterns are very consistent month-to-month');
+    }
+    
+    // Trend insights
+    if (trendDirection === 'increasing') {
+      insights.push('Spending trend is increasing over recent months');
+    } else if (trendDirection === 'decreasing') {
+      insights.push('Spending trend is decreasing over recent months');
+    }
+    
+    // Recent change insights
+    if (monthlyChanges.length > 0) {
+      const recentChange = monthlyChanges[monthlyChanges.length - 1];
+      if (Math.abs(recentChange.percentageChange) > 20) {
+        insights.push(
+          `Significant ${recentChange.change > 0 ? 'increase' : 'decrease'} of ${Math.abs(recentChange.percentageChange).toFixed(1)}% from last month`
+        );
+      }
+    }
+    
+    return {
+      currentMonth: {
+        month: currentMonthData.month,
+        total: currentMonthData.total
+      },
+      averageSpending,
+      monthlyChanges,
+      trendDirection,
+      averageMonthlyChange,
+      volatility,
+      insights
+    };
   }
 }

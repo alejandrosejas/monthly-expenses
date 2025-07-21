@@ -40,7 +40,19 @@ vi.mock('../services/analytics-service', () => {
           difference: -30,
           percentageChange: -16.67
         }
-      ])
+      ]),
+      getTrendAnalysis: vi.fn().mockResolvedValue({
+        currentMonth: { month: '2023-03', total: 600 },
+        averageSpending: 500,
+        monthlyChanges: [
+          { month: '2023-02', change: 100, percentageChange: 25 },
+          { month: '2023-03', change: 100, percentageChange: 20 }
+        ],
+        trendDirection: 'increasing',
+        averageMonthlyChange: 100,
+        volatility: 50,
+        insights: ['Current month spending is above average by 20%']
+      })
     }))
   };
 });
@@ -132,6 +144,38 @@ describe('Analytics Routes', () => {
     it('should return 400 for invalid month format', async () => {
       await request(app)
         .get('/api/analytics/compare/invalid-month/2023-02')
+        .expect('Content-Type', /json/)
+        .expect(400);
+    });
+  });
+
+  describe('GET /api/analytics/trend-analysis/:month', () => {
+    it('should return trend analysis for a month', async () => {
+      const response = await request(app)
+        .get('/api/analytics/trend-analysis/2023-03')
+        .expect('Content-Type', /json/)
+        .expect(200);
+
+      expect(response.body.data.currentMonth.month).toBe('2023-03');
+      expect(response.body.data.currentMonth.total).toBe(600);
+      expect(response.body.data.averageSpending).toBe(500);
+      expect(response.body.data.trendDirection).toBe('increasing');
+      expect(response.body.data.monthlyChanges).toHaveLength(2);
+      expect(response.body.data.insights).toHaveLength(1);
+    });
+
+    it('should return trend analysis with custom months count', async () => {
+      const response = await request(app)
+        .get('/api/analytics/trend-analysis/2023-03?months=12')
+        .expect('Content-Type', /json/)
+        .expect(200);
+
+      expect(response.body.data.currentMonth.month).toBe('2023-03');
+    });
+
+    it('should return 400 for invalid month format', async () => {
+      await request(app)
+        .get('/api/analytics/trend-analysis/invalid-month')
         .expect('Content-Type', /json/)
         .expect(400);
     });

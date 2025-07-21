@@ -3,6 +3,25 @@ import { useDataSync } from './useDataSync';
 import { useExpenseContext } from '../contexts/ExpenseContext';
 import { useToast } from '../components/common/Toast';
 import { vi } from 'vitest';
+import { it } from 'date-fns/locale';
+import { it } from 'date-fns/locale';
+import { it } from 'date-fns/locale';
+import { it } from 'date-fns/locale';
+import { it } from 'date-fns/locale';
+import { it } from 'date-fns/locale';
+import { it } from 'date-fns/locale';
+import { it } from 'date-fns/locale';
+import { it } from 'date-fns/locale';
+import { it } from 'date-fns/locale';
+import { it } from 'date-fns/locale';
+import { it } from 'date-fns/locale';
+import { it } from 'date-fns/locale';
+import { it } from 'date-fns/locale';
+import { it } from 'date-fns/locale';
+import { it } from 'date-fns/locale';
+import { it } from 'date-fns/locale';
+import { it } from 'date-fns/locale';
+import { it } from 'date-fns/locale';
 
 // Mock dependencies
 vi.mock('../contexts/ExpenseContext');

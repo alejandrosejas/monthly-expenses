@@ -86,7 +86,7 @@ const ExpenseChart: React.FC<ExpenseChartProps> = ({ month }) => {
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
+    <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow" data-testid="category-chart">
       <h3 className="text-lg font-medium mb-4 text-gray-900 dark:text-white">
         Expense Breakdown by Category
       </h3>
@@ -133,7 +133,7 @@ const ExpenseChart: React.FC<ExpenseChartProps> = ({ month }) => {
               <th className="text-right text-gray-600 dark:text-gray-300 px-2">Percentage</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+          <tbody className="divide-y divide-gray-200 dark:divide-gray-700" data-testid="chart-legend">
             {breakdownResponse?.data.map((item) => (
               <tr key={item.category}>
                 <td className="py-2 px-2">

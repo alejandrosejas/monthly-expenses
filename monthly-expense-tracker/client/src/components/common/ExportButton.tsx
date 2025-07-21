@@ -68,6 +68,7 @@ const ExportButton: React.FC<ExportButtonProps> = ({ month, disabled = false, cl
                   <button
                     onClick={() => handleExport('csv')}
                     disabled={isExporting}
+                    data-testid="export-csv-button"
                     className={`${
                       active ? 'bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white' : 'text-gray-700 dark:text-gray-200'
                     } flex w-full items-center px-4 py-3 sm:py-2 text-base sm:text-sm touch-manipulation`}
@@ -81,6 +82,7 @@ const ExportButton: React.FC<ExportButtonProps> = ({ month, disabled = false, cl
                   <button
                     onClick={() => handleExport('pdf')}
                     disabled={isExporting}
+                    data-testid="export-pdf-button"
                     className={`${
                       active ? 'bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white' : 'text-gray-700 dark:text-gray-200'
                     } flex w-full items-center px-4 py-3 sm:py-2 text-base sm:text-sm touch-manipulation`}

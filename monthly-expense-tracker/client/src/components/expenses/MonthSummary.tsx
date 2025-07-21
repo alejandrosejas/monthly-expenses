@@ -109,7 +109,7 @@ const MonthSummary: React.FC<MonthSummaryProps> = ({ month, categories }) => {
             {/* Total expenses card */}
             <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-4">
               <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Expenses</h3>
-              <p className="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">
+              <p className="mt-1 text-2xl font-semibold text-gray-900 dark:text-white" data-testid="monthly-total">
                 {formatCurrency(summaryResponse?.data?.totalExpenses || 0)}
               </p>
             </div>
@@ -166,7 +166,7 @@ const MonthSummary: React.FC<MonthSummaryProps> = ({ month, categories }) => {
                           <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                             {category?.name || 'Unknown'}
                           </span>
-                          <span className="text-sm text-gray-500 dark:text-gray-400">
+                          <span className="text-sm text-gray-500 dark:text-gray-400" data-testid={`${category?.name?.toLowerCase()}-total`}>
                             {formatCurrency(item.amount)} ({Math.round(item.percentage)}%)
                           </span>
                         </div>

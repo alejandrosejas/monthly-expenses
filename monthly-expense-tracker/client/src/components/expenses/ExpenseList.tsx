@@ -380,6 +380,7 @@ const ExpenseList: React.FC<ExpenseListProps> = ({
             placeholder="Search expenses..."
             value={searchTerm}
             onChange={handleSearchChange}
+            data-testid="search-input"
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           />
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -477,7 +478,7 @@ const ExpenseList: React.FC<ExpenseListProps> = ({
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+          <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700" data-testid="expense-list">
             {loadingExpenses ? (
               <tr>
                 <td colSpan={6} className="px-6 py-4">
@@ -492,7 +493,7 @@ const ExpenseList: React.FC<ExpenseListProps> = ({
               </tr>
             ) : expensesResponse?.data?.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                <td colSpan={6} className="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400" data-testid="empty-state">
                   No expenses found for this month.
                   {(searchTerm || selectedCategories.length > 0 || Object.keys(filters).length > 0) && (
                     <span> Try clearing your filters.</span>

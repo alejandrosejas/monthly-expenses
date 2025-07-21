@@ -1,12 +1,20 @@
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense, lazy } from 'react';
 import Button from './components/common/Button';
 import MobileMenu from './components/common/MobileMenu';
 import MonthNavigator from './components/common/MonthNavigator';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import ToastProvider, { useToast } from './components/common/Toast';
+import Skeleton from './components/common/Skeleton';
 import { ExpenseProvider } from './contexts/ExpenseContext';
 import { getCurrentMonth } from './utils/date-utils';
+
+// Lazy load page components for better performance
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Expenses = lazy(() => import('./pages/Expenses'));
+const Categories = lazy(() => import('./pages/Categories'));
+const Budgets = lazy(() => import('./pages/Budgets'));
+const Analytics = lazy(() => import('./pages/Analytics'));
 
 // Layout components
 const Layout = ({ children }: { children: React.ReactNode }) => {
@@ -24,19 +32,19 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                 </h1>
               </div>
               <nav className="hidden md:ml-6 md:flex md:space-x-8">
-                <Link to="/" className="border-primary-500 text-gray-900 dark:text-white inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                <Link to="/" className="border-primary-500 text-gray-900 dark:text-white inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium" data-testid="dashboard-tab">
                   Dashboard
                 </Link>
-                <Link to="/expenses" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                <Link to="/expenses" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium" data-testid="expenses-tab">
                   Expenses
                 </Link>
-                <Link to="/categories" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                <Link to="/categories" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium" data-testid="categories-tab">
                   Categories
                 </Link>
-                <Link to="/budgets" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                <Link to="/budgets" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium" data-testid="budget-tab">
                   Budgets
                 </Link>
-                <Link to="/analytics" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                <Link to="/analytics" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium" data-testid="analytics-tab">
                   Analytics
                 </Link>
               </nav>
@@ -46,6 +54,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500"
                 aria-expanded={isMobileMenuOpen}
+                data-testid="mobile-menu-button"
               >
                 <span className="sr-only">Open main menu</span>
                 <svg
@@ -76,346 +85,17 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-// Dashboard page with monthly summary
-import MonthSummary from './components/expenses/MonthSummary';
-import { useExpenseState } from './hooks/useExpenseState';
-
-const Dashboard = () => {
-  const [currentMonth, setCurrentMonth] = useState(getCurrentMonth());
-  
-  const {
-    categories,
-    loading,
-    errors,
-    refreshCategories,
-  } = useExpenseState({ month: currentMonth });
-  
-  return (
-    <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 space-y-4 sm:space-y-0">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h2>
-        </div>
-        <MonthNavigator 
-          currentMonth={currentMonth} 
-          onMonthChange={setCurrentMonth} 
-        />
-      </div>
-      
-      {loading.categories ? (
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="h-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
-            <div className="h-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
-            <div className="h-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
-          </div>
-        </div>
-      ) : errors.categories ? (
-        <div className="bg-red-50 dark:bg-red-900 p-4 rounded-md">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800 dark:text-red-200">Error loading categories</h3>
-              <div className="mt-2 text-sm text-red-700 dark:text-red-300">
-                <p>{errors.categories}</p>
-              </div>
-              <div className="mt-4">
-                <Button variant="outline" size="sm" onClick={refreshCategories}>
-                  Try Again
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      ) : (
-        <MonthSummary 
-          month={currentMonth}
-          categories={categories}
-        />
-      )}
+// Loading component for lazy-loaded pages
+const PageLoader = () => (
+  <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+    <Skeleton className="h-8 w-48 mb-6" />
+    <div className="space-y-4">
+      <Skeleton className="h-24 w-full" />
+      <Skeleton className="h-24 w-full" />
+      <Skeleton className="h-24 w-full" />
     </div>
-  );
-};
-
-import ExpenseForm from './components/expenses/ExpenseForm';
-import ExpenseList from './components/expenses/ExpenseList';
-import { useExpenseState } from './hooks/useExpenseState';
-import { Category, Expense, formatMonthYear, getPreviousMonth, getNextMonth } from 'shared';
-
-const Expenses = () => {
-  const [currentMonth, setCurrentMonth] = useState(getCurrentMonth());
-  const [showForm, setShowForm] = useState(false);
-  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
-  
-  const {
-    categories,
-    loading,
-    errors,
-    refreshCategories,
-  } = useExpenseState({ month: currentMonth });
-  
-  // Handle expense added or updated
-  const handleExpenseSuccess = () => {
-    setShowForm(false);
-    setEditingExpense(null);
-  };
-  
-  // Handle edit expense
-  const handleEditExpense = (expense: Expense) => {
-    setEditingExpense(expense);
-    setShowForm(true);
-  };
-  
-  return (
-    <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-      {/* Header with month navigation */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 space-y-4 sm:space-y-0">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Expenses</h2>
-        </div>
-        <div className="flex items-center space-x-4">
-          <MonthNavigator 
-            currentMonth={currentMonth} 
-            onMonthChange={setCurrentMonth} 
-          />
-          <Button 
-            variant="primary" 
-            onClick={() => {
-              setEditingExpense(null);
-              setShowForm(!showForm);
-            }}
-          >
-            {showForm && !editingExpense ? 'Cancel' : 'Add Expense'}
-          </Button>
-        </div>
-      </div>
-      
-      {/* Expense form */}
-      {showForm && (
-        <div className="mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
-          {loading.categories ? (
-            <p className="text-gray-600 dark:text-gray-300">Loading categories...</p>
-          ) : errors.categories ? (
-            <p className="text-red-600">Error loading categories. Please try again.</p>
-          ) : (
-            <ExpenseForm 
-              expense={editingExpense || undefined}
-              categories={categories}
-              onSuccess={handleExpenseSuccess}
-              onCancel={() => {
-                setShowForm(false);
-                setEditingExpense(null);
-              }}
-            />
-          )}
-        </div>
-      )}
-      
-      {/* Expense list */}
-      {!loading.categories && !errors.categories && (
-        <ExpenseList
-          month={currentMonth}
-          categories={categories}
-          onEditExpense={handleEditExpense}
-          onExpenseDeleted={refreshCategories}
-        />
-      )}
-    </div>
-  );
-};
-
-import CategoryManager from './components/categories/CategoryManager';
-import { useExpenseState } from './hooks/useExpenseState';
-
-const Categories = () => {
-  const {
-    categories,
-    loading,
-    errors,
-    refreshCategories,
-  } = useExpenseState();
-  
-  return (
-    <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Categories</h2>
-        <p className="text-gray-600 dark:text-gray-300 mt-1">
-          Manage your expense categories to better organize your spending.
-        </p>
-      </div>
-      
-      {loading.categories ? (
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
-          <div className="space-y-3">
-            <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded"></div>
-            <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded"></div>
-            <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded"></div>
-          </div>
-        </div>
-      ) : errors.categories ? (
-        <div className="bg-red-50 dark:bg-red-900 p-4 rounded-md">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800 dark:text-red-200">Error loading categories</h3>
-              <div className="mt-2 text-sm text-red-700 dark:text-red-300">
-                <p>{errors.categories}</p>
-              </div>
-              <div className="mt-4">
-                <Button variant="outline" size="sm" onClick={refreshCategories}>
-                  Try Again
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      ) : (
-        <CategoryManager 
-          categories={categories}
-          onCategoryChange={refreshCategories}
-        />
-      )}
-    </div>
-  );
-};
-
-import BudgetTracker from './components/budget/BudgetTracker';
-
-const Budgets = () => {
-  const [currentMonth, setCurrentMonth] = useState(getCurrentMonth());
-  
-  const {
-    categories,
-    loading,
-    errors,
-    refreshCategories,
-  } = useExpenseState({ month: currentMonth });
-  
-  return (
-    <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 space-y-4 sm:space-y-0">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Budgets</h2>
-        </div>
-        <MonthNavigator 
-          currentMonth={currentMonth} 
-          onMonthChange={setCurrentMonth} 
-        />
-      </div>
-      
-      {loading.categories ? (
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
-          <div className="h-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
-        </div>
-      ) : errors.categories ? (
-        <div className="bg-red-50 dark:bg-red-900 p-4 rounded-md">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800 dark:text-red-200">Error loading categories</h3>
-              <div className="mt-2 text-sm text-red-700 dark:text-red-300">
-                <p>{errors.categories}</p>
-              </div>
-              <div className="mt-4">
-                <Button variant="outline" size="sm" onClick={refreshCategories}>
-                  Try Again
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      ) : (
-        <BudgetTracker 
-          month={currentMonth}
-          categories={categories}
-        />
-      )}
-    </div>
-  );
-};
-
-import ExpenseChart from './components/analytics/ExpenseChart';
-import TrendChart from './components/analytics/TrendChart';
-import MonthComparison from './components/analytics/MonthComparison';
-
-const Analytics = () => {
-  const [currentMonth, setCurrentMonth] = useState(getCurrentMonth());
-  
-  // Calculate previous month for comparison
-  const previousMonth = (() => {
-    const date = new Date(`${currentMonth}-01`);
-    date.setMonth(date.getMonth() - 1);
-    return date.toISOString().substring(0, 7); // YYYY-MM format
-  })();
-  
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Analytics</h2>
-            <p className="text-gray-600 dark:text-gray-300 mt-1">
-              Analyze your spending patterns and trends
-            </p>
-          </div>
-          <MonthNavigator 
-            currentMonth={currentMonth} 
-            onMonthChange={setCurrentMonth} 
-          />
-        </div>
-      </div>
-      
-      {/* Charts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <ExpenseChart month={currentMonth} />
-        <TrendChart month={currentMonth} />
-      </div>
-      
-      {/* Month-over-Month Comparison */}
-      <MonthComparison 
-        currentMonth={currentMonth} 
-        previousMonth={previousMonth} 
-      />
-      
-      {/* Insights */}
-      <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-        <h3 className="text-lg font-medium mb-4 text-gray-900 dark:text-white">
-          How to Use Analytics
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600 dark:text-gray-300">
-          <div>
-            <h4 className="font-medium text-gray-900 dark:text-white mb-2">Category Breakdown</h4>
-            <p>See where your money goes each month with visual category breakdowns and percentages.</p>
-          </div>
-          <div>
-            <h4 className="font-medium text-gray-900 dark:text-white mb-2">Spending Trends</h4>
-            <p>Track your spending patterns over time with trend analysis and month-over-month changes.</p>
-          </div>
-          <div>
-            <h4 className="font-medium text-gray-900 dark:text-white mb-2">Month Comparison</h4>
-            <p>Compare current month spending with previous months to identify changes and patterns.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
+  </div>
+);
 
 const NotFound = () => (
   <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 text-center">
@@ -437,35 +117,45 @@ function App() {
             <Route path="/" element={
               <Layout>
                 <ErrorBoundary>
-                  <Dashboard />
+                  <Suspense fallback={<PageLoader />}>
+                    <Dashboard />
+                  </Suspense>
                 </ErrorBoundary>
               </Layout>
             } />
             <Route path="/expenses" element={
               <Layout>
                 <ErrorBoundary>
-                  <Expenses />
+                  <Suspense fallback={<PageLoader />}>
+                    <Expenses />
+                  </Suspense>
                 </ErrorBoundary>
               </Layout>
             } />
             <Route path="/categories" element={
               <Layout>
                 <ErrorBoundary>
-                  <Categories />
+                  <Suspense fallback={<PageLoader />}>
+                    <Categories />
+                  </Suspense>
                 </ErrorBoundary>
               </Layout>
             } />
             <Route path="/budgets" element={
               <Layout>
                 <ErrorBoundary>
-                  <Budgets />
+                  <Suspense fallback={<PageLoader />}>
+                    <Budgets />
+                  </Suspense>
                 </ErrorBoundary>
               </Layout>
             } />
             <Route path="/analytics" element={
               <Layout>
                 <ErrorBoundary>
-                  <Analytics />
+                  <Suspense fallback={<PageLoader />}>
+                    <Analytics />
+                  </Suspense>
                 </ErrorBoundary>
               </Layout>
             } />

@@ -92,6 +92,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose }) => {
                   : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white'
               } block pl-3 pr-4 py-3 border-l-4 text-base font-medium`}
               onClick={onClose}
+              data-testid="mobile-budget-link"
             >
               Budgets
             </Link>
@@ -103,6 +104,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose }) => {
                   : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white'
               } block pl-3 pr-4 py-3 border-l-4 text-base font-medium`}
               onClick={onClose}
+              data-testid="mobile-analytics-link"
             >
               Analytics
             </Link>

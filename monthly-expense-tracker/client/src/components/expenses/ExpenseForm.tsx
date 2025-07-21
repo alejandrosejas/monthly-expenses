@@ -139,7 +139,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6" data-testid="expense-form">
       {/* Form title */}
       <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
         {expense?.id ? 'Edit Expense' : 'Add New Expense'}
@@ -185,13 +185,14 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
               min="0"
               placeholder="0.00"
               inputMode="decimal"
+              data-testid="expense-amount"
               className={`block w-full pl-7 pr-12 rounded-md border-gray-300 focus:border-primary-500 focus:ring-primary-500 sm:text-sm
                 ${errors.amount ? 'border-red-500' : ''}
                 h-10 sm:h-auto text-base sm:text-sm touch-manipulation`}
             />
           </div>
           {errors.amount && (
-            <p className="mt-1 text-sm text-red-600">{errors.amount}</p>
+            <p className="mt-1 text-sm text-red-600" data-testid="amount-error">{errors.amount}</p>
           )}
         </div>
       </div>
@@ -207,6 +208,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
             name="category"
             value={formData.category}
             onChange={handleChange}
+            data-testid="expense-category"
             className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm
               ${errors.category ? 'border-red-500' : ''}
               h-10 sm:h-auto text-base sm:text-sm touch-manipulation py-2`}
@@ -236,6 +238,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
             name="paymentMethod"
             value={formData.paymentMethod}
             onChange={handleChange}
+            data-testid="expense-payment-method"
             className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm
               ${errors.paymentMethod ? 'border-red-500' : ''}
               h-10 sm:h-auto text-base sm:text-sm touch-manipulation py-2`}
@@ -262,13 +265,14 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
           value={formData.description}
           onChange={handleChange}
           rows={3}
+          data-testid="expense-description"
           className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm
             ${errors.description ? 'border-red-500' : ''}
             text-base sm:text-sm touch-manipulation`}
           placeholder="Enter expense description"
         />
         {errors.description && (
-          <p className="mt-1 text-sm text-red-600">{errors.description}</p>
+          <p className="mt-1 text-sm text-red-600" data-testid="description-error">{errors.description}</p>
         )}
       </div>
       
@@ -304,6 +308,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
           isLoading={isSubmitting}
           disabled={isSubmitting}
           className="w-full sm:w-auto"
+          data-testid={expense?.id ? "save-expense-button" : "add-expense-button"}
         >
           {expense?.id ? 'Update Expense' : 'Add Expense'}
         </Button>

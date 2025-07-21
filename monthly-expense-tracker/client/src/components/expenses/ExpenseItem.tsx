@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Expense, Category } from 'shared';
 import { formatDate } from '../../utils/date-utils';
-import { useDelete } from '../../hooks/useApi';
+import { useExpenseState } from '../../hooks/useExpenseState';
 import Button from '../common/Button';
 
 interface ExpenseItemProps {
@@ -22,8 +22,8 @@ const ExpenseItem: React.FC<ExpenseItemProps> = ({
   const [isDeleting, setIsDeleting] = useState(false);
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   
-  // Delete expense API hook
-  const deleteExpense = useDelete<{ success: boolean }>(`/api/expenses/${expense.id}`);
+  // Get expense state management
+  const { deleteExpense } = useExpenseState();
   
   // Handle delete button click
   const handleDeleteClick = () => {
@@ -34,8 +34,10 @@ const ExpenseItem: React.FC<ExpenseItemProps> = ({
   const handleConfirmDelete = async () => {
     setIsDeleting(true);
     try {
-      await deleteExpense.execute();
-      onDelete();
+      const success = await deleteExpense(expense.id);
+      if (success) {
+        onDelete();
+      }
     } catch (error) {
       console.error('Error deleting expense:', error);
     } finally {

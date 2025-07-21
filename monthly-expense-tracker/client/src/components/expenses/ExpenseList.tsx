@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Expense, Category, ExpenseFilters, PaginatedResponse } from 'shared';
-import { useGet } from '../../hooks/useApi';
+import { useExpenseState } from '../../hooks/useExpenseState';
 import { formatDate, getMonthStart, getMonthEnd } from '../../utils/date-utils';
 import ExpenseItem from './ExpenseItem';
 import Button from '../common/Button';
@@ -169,32 +169,103 @@ const ExpenseList: React.FC<ExpenseListProps> = ({
     }
   }, [searchTerm, sortField, sortDirection, currentPage, selectedCategories, filters, urlParams]);
   
-  // API call to get expenses
+  // Get expense state management
   const {
-    data: expensesResponse,
-    loading: loadingExpenses,
-    error: expensesError,
-    execute: fetchExpenses,
-  } = useGet<PaginatedResponse<Expense>>('/api/expenses', {
-    month,
-    page: currentPage.toString(),
-    limit: itemsPerPage.toString(),
-    sort: sortField,
-    direction: sortDirection,
-    search: searchTerm,
-    ...(selectedCategories.length > 0 ? { categories: selectedCategories.join(',') } : {}),
-    ...(filters.minAmount !== undefined ? { minAmount: filters.minAmount.toString() } : {}),
-    ...(filters.maxAmount !== undefined ? { maxAmount: filters.maxAmount.toString() } : {}),
-    ...(filters.paymentMethods && filters.paymentMethods.length > 0 ? { paymentMethods: filters.paymentMethods.join(',') } : {}),
-    ...(filters.startDate ? { startDate: filters.startDate } : {}),
-    ...(filters.endDate ? { endDate: filters.endDate } : {}),
-  });
+    expenses: allExpenses,
+    loading,
+    errors,
+    deleteExpense,
+  } = useExpenseState({ month });
 
-  // Fetch expenses when dependencies change
+  // Filter and sort expenses locally
+  const filteredAndSortedExpenses = useMemo(() => {
+    let filtered = [...allExpenses];
+
+    // Apply search filter
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      filtered = filtered.filter(expense =>
+        expense.description.toLowerCase().includes(searchLower) ||
+        expense.amount.toString().includes(searchLower) ||
+        categories.find(c => c.id === expense.category)?.name.toLowerCase().includes(searchLower)
+      );
+    }
+
+    // Apply category filter
+    if (selectedCategories.length > 0) {
+      filtered = filtered.filter(expense => selectedCategories.includes(expense.category));
+    }
+
+    // Apply amount filters
+    if (filters.minAmount !== undefined) {
+      filtered = filtered.filter(expense => expense.amount >= filters.minAmount!);
+    }
+    if (filters.maxAmount !== undefined) {
+      filtered = filtered.filter(expense => expense.amount <= filters.maxAmount!);
+    }
+
+    // Apply payment method filter
+    if (filters.paymentMethods && filters.paymentMethods.length > 0) {
+      filtered = filtered.filter(expense => filters.paymentMethods!.includes(expense.paymentMethod));
+    }
+
+    // Apply date range filter
+    if (filters.startDate) {
+      filtered = filtered.filter(expense => expense.date >= filters.startDate!);
+    }
+    if (filters.endDate) {
+      filtered = filtered.filter(expense => expense.date <= filters.endDate!);
+    }
+
+    // Sort expenses
+    filtered.sort((a, b) => {
+      let comparison = 0;
+      
+      switch (sortField) {
+        case 'date':
+          comparison = new Date(a.date).getTime() - new Date(b.date).getTime();
+          break;
+        case 'amount':
+          comparison = a.amount - b.amount;
+          break;
+        case 'category':
+          const categoryA = categories.find(c => c.id === a.category)?.name || '';
+          const categoryB = categories.find(c => c.id === b.category)?.name || '';
+          comparison = categoryA.localeCompare(categoryB);
+          break;
+      }
+      
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
+
+    return filtered;
+  }, [allExpenses, searchTerm, selectedCategories, filters, sortField, sortDirection, categories]);
+
+  // Paginate expenses
+  const paginatedExpenses = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredAndSortedExpenses.slice(startIndex, endIndex);
+  }, [filteredAndSortedExpenses, currentPage, itemsPerPage]);
+
+  // Create mock response for compatibility
+  const expensesResponse = useMemo(() => ({
+    data: paginatedExpenses,
+    pagination: {
+      total: filteredAndSortedExpenses.length,
+      totalPages: Math.ceil(filteredAndSortedExpenses.length / itemsPerPage),
+      currentPage,
+      limit: itemsPerPage,
+    },
+  }), [paginatedExpenses, filteredAndSortedExpenses.length, currentPage, itemsPerPage]);
+
+  const loadingExpenses = loading.expenses;
+  const expensesError = errors.expenses;
+
+  // Update URL params when filters change
   useEffect(() => {
-    fetchExpenses();
     updateUrlParams();
-  }, [month, currentPage, sortField, sortDirection, searchTerm, selectedCategories, filters, updateUrlParams]);
+  }, [searchTerm, sortField, sortDirection, currentPage, selectedCategories, filters, updateUrlParams]);
 
   // Handle search input change
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {

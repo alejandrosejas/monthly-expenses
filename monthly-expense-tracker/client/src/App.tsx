@@ -5,6 +5,7 @@ import MobileMenu from './components/common/MobileMenu';
 import MonthNavigator from './components/common/MonthNavigator';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import ToastProvider, { useToast } from './components/common/Toast';
+import { ExpenseProvider } from './contexts/ExpenseContext';
 import { getCurrentMonth } from './utils/date-utils';
 
 // Layout components
@@ -77,22 +78,17 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
 
 // Dashboard page with monthly summary
 import MonthSummary from './components/expenses/MonthSummary';
+import { useExpenseState } from './hooks/useExpenseState';
 
 const Dashboard = () => {
   const [currentMonth, setCurrentMonth] = useState(getCurrentMonth());
   
-  // Fetch categories
-  const { 
-    data: categoriesResponse, 
-    loading: loadingCategories, 
-    error: categoriesError, 
-    execute: fetchCategories 
-  } = useGet<{ data: Category[] }>('/api/categories');
-  
-  // Fetch categories when component mounts
-  useEffect(() => {
-    fetchCategories();
-  }, []);
+  const {
+    categories,
+    loading,
+    errors,
+    refreshCategories,
+  } = useExpenseState({ month: currentMonth });
   
   return (
     <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
@@ -106,7 +102,7 @@ const Dashboard = () => {
         />
       </div>
       
-      {loadingCategories ? (
+      {loading.categories ? (
         <div className="animate-pulse space-y-4">
           <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -115,7 +111,7 @@ const Dashboard = () => {
             <div className="h-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
           </div>
         </div>
-      ) : categoriesError ? (
+      ) : errors.categories ? (
         <div className="bg-red-50 dark:bg-red-900 p-4 rounded-md">
           <div className="flex">
             <div className="flex-shrink-0">
@@ -126,7 +122,12 @@ const Dashboard = () => {
             <div className="ml-3">
               <h3 className="text-sm font-medium text-red-800 dark:text-red-200">Error loading categories</h3>
               <div className="mt-2 text-sm text-red-700 dark:text-red-300">
-                <p>Unable to load categories. Please try again.</p>
+                <p>{errors.categories}</p>
+              </div>
+              <div className="mt-4">
+                <Button variant="outline" size="sm" onClick={refreshCategories}>
+                  Try Again
+                </Button>
               </div>
             </div>
           </div>
@@ -134,7 +135,7 @@ const Dashboard = () => {
       ) : (
         <MonthSummary 
           month={currentMonth}
-          categories={categoriesResponse?.data || []}
+          categories={categories}
         />
       )}
     </div>
@@ -143,7 +144,7 @@ const Dashboard = () => {
 
 import ExpenseForm from './components/expenses/ExpenseForm';
 import ExpenseList from './components/expenses/ExpenseList';
-import { useGet } from './hooks/useApi';
+import { useExpenseState } from './hooks/useExpenseState';
 import { Category, Expense, formatMonthYear, getPreviousMonth, getNextMonth } from 'shared';
 
 const Expenses = () => {
@@ -151,18 +152,12 @@ const Expenses = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   
-  // Fetch categories
-  const { 
-    data: categoriesResponse, 
-    loading: loadingCategories, 
-    error: categoriesError, 
-    execute: fetchCategories 
-  } = useGet<{ data: Category[] }>('/api/categories');
-  
-  // Fetch categories when component mounts
-  useEffect(() => {
-    fetchCategories();
-  }, []);
+  const {
+    categories,
+    loading,
+    errors,
+    refreshCategories,
+  } = useExpenseState({ month: currentMonth });
   
   // Handle expense added or updated
   const handleExpenseSuccess = () => {
@@ -203,14 +198,14 @@ const Expenses = () => {
       {/* Expense form */}
       {showForm && (
         <div className="mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
-          {loadingCategories ? (
+          {loading.categories ? (
             <p className="text-gray-600 dark:text-gray-300">Loading categories...</p>
-          ) : categoriesError ? (
+          ) : errors.categories ? (
             <p className="text-red-600">Error loading categories. Please try again.</p>
           ) : (
             <ExpenseForm 
               expense={editingExpense || undefined}
-              categories={categoriesResponse?.data || []}
+              categories={categories}
               onSuccess={handleExpenseSuccess}
               onCancel={() => {
                 setShowForm(false);
@@ -222,12 +217,12 @@ const Expenses = () => {
       )}
       
       {/* Expense list */}
-      {!loadingCategories && !categoriesError && (
+      {!loading.categories && !errors.categories && (
         <ExpenseList
           month={currentMonth}
-          categories={categoriesResponse?.data || []}
+          categories={categories}
           onEditExpense={handleEditExpense}
-          onExpenseDeleted={fetchCategories}
+          onExpenseDeleted={refreshCategories}
         />
       )}
     </div>
@@ -235,15 +230,15 @@ const Expenses = () => {
 };
 
 import CategoryManager from './components/categories/CategoryManager';
-import { useCategories } from './hooks/useCategories';
+import { useExpenseState } from './hooks/useExpenseState';
 
 const Categories = () => {
-  const { categories, loading, error, fetchCategories } = useCategories();
-  
-  // Fetch categories when component mounts
-  useEffect(() => {
-    fetchCategories();
-  }, [fetchCategories]);
+  const {
+    categories,
+    loading,
+    errors,
+    refreshCategories,
+  } = useExpenseState();
   
   return (
     <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
@@ -254,7 +249,7 @@ const Categories = () => {
         </p>
       </div>
       
-      {loading ? (
+      {loading.categories ? (
         <div className="animate-pulse space-y-4">
           <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
           <div className="space-y-3">
@@ -263,7 +258,7 @@ const Categories = () => {
             <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded"></div>
           </div>
         </div>
-      ) : error ? (
+      ) : errors.categories ? (
         <div className="bg-red-50 dark:bg-red-900 p-4 rounded-md">
           <div className="flex">
             <div className="flex-shrink-0">
@@ -274,10 +269,10 @@ const Categories = () => {
             <div className="ml-3">
               <h3 className="text-sm font-medium text-red-800 dark:text-red-200">Error loading categories</h3>
               <div className="mt-2 text-sm text-red-700 dark:text-red-300">
-                <p>{error}</p>
+                <p>{errors.categories}</p>
               </div>
               <div className="mt-4">
-                <Button variant="outline" size="sm" onClick={fetchCategories}>
+                <Button variant="outline" size="sm" onClick={refreshCategories}>
                   Try Again
                 </Button>
               </div>
@@ -287,7 +282,7 @@ const Categories = () => {
       ) : (
         <CategoryManager 
           categories={categories}
-          onCategoryChange={fetchCategories}
+          onCategoryChange={refreshCategories}
         />
       )}
     </div>
@@ -299,18 +294,12 @@ import BudgetTracker from './components/budget/BudgetTracker';
 const Budgets = () => {
   const [currentMonth, setCurrentMonth] = useState(getCurrentMonth());
   
-  // Fetch categories
-  const { 
-    data: categoriesResponse, 
-    loading: loadingCategories, 
-    error: categoriesError, 
-    execute: fetchCategories 
-  } = useGet<{ data: Category[] }>('/api/categories');
-  
-  // Fetch categories when component mounts
-  useEffect(() => {
-    fetchCategories();
-  }, []);
+  const {
+    categories,
+    loading,
+    errors,
+    refreshCategories,
+  } = useExpenseState({ month: currentMonth });
   
   return (
     <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
@@ -324,12 +313,12 @@ const Budgets = () => {
         />
       </div>
       
-      {loadingCategories ? (
+      {loading.categories ? (
         <div className="animate-pulse space-y-4">
           <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
           <div className="h-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
         </div>
-      ) : categoriesError ? (
+      ) : errors.categories ? (
         <div className="bg-red-50 dark:bg-red-900 p-4 rounded-md">
           <div className="flex">
             <div className="flex-shrink-0">
@@ -340,7 +329,12 @@ const Budgets = () => {
             <div className="ml-3">
               <h3 className="text-sm font-medium text-red-800 dark:text-red-200">Error loading categories</h3>
               <div className="mt-2 text-sm text-red-700 dark:text-red-300">
-                <p>Unable to load categories. Please try again.</p>
+                <p>{errors.categories}</p>
+              </div>
+              <div className="mt-4">
+                <Button variant="outline" size="sm" onClick={refreshCategories}>
+                  Try Again
+                </Button>
               </div>
             </div>
           </div>
@@ -348,7 +342,7 @@ const Budgets = () => {
       ) : (
         <BudgetTracker 
           month={currentMonth}
-          categories={categoriesResponse?.data || []}
+          categories={categories}
         />
       )}
     </div>
@@ -404,9 +398,10 @@ const NotFound = () => (
 function App() {
   return (
     <ToastProvider>
-      <Router>
-        <ErrorBoundary>
-          <Routes>
+      <ExpenseProvider>
+        <Router>
+          <ErrorBoundary>
+            <Routes>
             <Route path="/" element={
               <Layout>
                 <ErrorBoundary>
@@ -452,6 +447,7 @@ function App() {
           </Routes>
         </ErrorBoundary>
       </Router>
+    </ExpenseProvider>
     </ToastProvider>
   );
 }

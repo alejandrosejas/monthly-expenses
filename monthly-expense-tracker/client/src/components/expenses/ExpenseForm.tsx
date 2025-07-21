@@ -4,7 +4,7 @@ import { ExpenseInput, PaymentMethod, Category } from 'shared';
 import Button from '../common/Button';
 import { useToast } from '../common/Toast';
 import { toISODateString } from '../../utils/date-utils';
-import { usePost, usePut } from '../../hooks/useApi';
+import { useExpenseState } from '../../hooks/useExpenseState';
 
 interface ExpenseFormProps {
   expense?: ExpenseInput & { id?: string };
@@ -37,18 +37,8 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
   // Toast notifications
   const { addToast } = useToast();
 
-  // API hooks for creating or updating expenses
-  const createExpense = usePost<{ data: ExpenseInput & { id: string } }, ExpenseInput>(
-    '/api/expenses',
-    formData
-  );
-  
-  const updateExpense = expense?.id 
-    ? usePut<{ data: ExpenseInput & { id: string } }, ExpenseInput>(
-        `/api/expenses/${expense.id}`,
-        formData
-      )
-    : null;
+  // Get expense state management
+  const { addExpense, updateExpense: updateExpenseState } = useExpenseState();
 
   // Update category when categories change and current category is not available
   useEffect(() => {
@@ -128,30 +118,20 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
     try {
       let result;
       
-      if (expense?.id && updateExpense) {
-        result = await updateExpense.execute();
+      if (expense?.id) {
+        result = await updateExpenseState(expense.id, formData);
       } else {
-        result = await createExpense.execute();
+        result = await addExpense(formData);
       }
       
       if (result && onSuccess) {
-        // Show success toast notification
-        addToast(
-          expense?.id ? 'Expense updated successfully' : 'Expense added successfully',
-          'success'
-        );
-        onSuccess(result.data);
+        onSuccess(result);
       }
     } catch (error) {
       console.error('Error submitting expense:', error);
       // Handle API errors
       if (error instanceof Error) {
         setErrors(prev => ({ ...prev, form: error.message }));
-        // Show error toast notification
-        addToast(
-          `Failed to ${expense?.id ? 'update' : 'add'} expense: ${error.message}`,
-          'error'
-        );
       }
     } finally {
       setIsSubmitting(false);
